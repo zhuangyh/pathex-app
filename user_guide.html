@@ -1,0 +1,704 @@
+<title>Pathology Structured Extractor — User Guide</title>
+<style>
+  :root {
+    --paper: #f4f2f7;
+    --paper-raised: #ffffff;
+    --ink: #201a2c;
+    --ink-dim: #5b5468;
+    --ink-faint: #8a839a;
+    --accent: #5a3b94;
+    --accent-ink: #3e2569;
+    --accent-tint: #ece6f7;
+    --accent-2: #c0577a;
+    --accent-2-tint: #f8e9ee;
+    --line: #ded7ea;
+    --line-soft: #eae5f1;
+    --code-bg: #221a30;
+    --code-ink: #e7e1f2;
+    --code-dim: #9c8fb8;
+    --success: #2f7a4f;
+    --success-bg: #e8f4ec;
+    --success-line: #bfe0cc;
+    --caution: #8a5a17;
+    --caution-bg: #fbf0dc;
+    --caution-line: #e9d19c;
+    --shadow: 0 1px 2px rgba(32, 26, 44, 0.04), 0 8px 24px rgba(32, 26, 44, 0.06);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, ui-serif, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #15121c;
+      --paper-raised: #1d1826;
+      --ink: #ede9f5;
+      --ink-dim: #a79cc0;
+      --ink-faint: #7a7192;
+      --accent: #b295e8;
+      --accent-ink: #d9c9ff;
+      --accent-tint: #2a2140;
+      --accent-2: #e491ac;
+      --accent-2-tint: #33202a;
+      --line: #322a44;
+      --line-soft: #251f34;
+      --code-bg: #0f0c17;
+      --code-ink: #e7e1f2;
+      --code-dim: #7a6f96;
+      --success: #6fcf97;
+      --success-bg: #16281d;
+      --success-line: #2c4a37;
+      --caution: #e0b15c;
+      --caution-bg: #2e2612;
+      --caution-line: #4d3d1c;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #15121c; --paper-raised: #1d1826; --ink: #ede9f5; --ink-dim: #a79cc0; --ink-faint: #7a7192;
+    --accent: #b295e8; --accent-ink: #d9c9ff; --accent-tint: #2a2140; --accent-2: #e491ac; --accent-2-tint: #33202a;
+    --line: #322a44; --line-soft: #251f34; --code-bg: #0f0c17; --code-ink: #e7e1f2; --code-dim: #7a6f96;
+    --success: #6fcf97; --success-bg: #16281d; --success-line: #2c4a37;
+    --caution: #e0b15c; --caution-bg: #2e2612; --caution-line: #4d3d1c;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+  :root[data-theme="light"] {
+    --paper: #f4f2f7; --paper-raised: #ffffff; --ink: #201a2c; --ink-dim: #5b5468; --ink-faint: #8a839a;
+    --accent: #5a3b94; --accent-ink: #3e2569; --accent-tint: #ece6f7; --accent-2: #c0577a; --accent-2-tint: #f8e9ee;
+    --line: #ded7ea; --line-soft: #eae5f1; --code-bg: #221a30; --code-ink: #e7e1f2; --code-dim: #9c8fb8;
+    --success: #2f7a4f; --success-bg: #e8f4ec; --success-line: #bfe0cc;
+    --caution: #8a5a17; --caution-bg: #fbf0dc; --caution-line: #e9d19c;
+    --shadow: 0 1px 2px rgba(32, 26, 44, 0.04), 0 8px 24px rgba(32, 26, 44, 0.06);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:hover { color: var(--accent-ink); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  h1, h2, h3, h4 { font-family: var(--serif); font-weight: 600; text-wrap: balance; color: var(--ink); }
+  code, pre { font-family: var(--mono); }
+  ::selection { background: var(--accent-tint); color: var(--accent-ink); }
+
+  .shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); max-width: 1120px; margin: 0 auto; }
+  .toc {
+    position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
+    padding: 2.75rem 1.5rem 2rem 2rem; border-right: 1px solid var(--line-soft); scrollbar-width: thin;
+  }
+  .toc-brand { font-family: var(--serif); font-weight: 600; font-size: 1.05rem; margin-bottom: 1.75rem; }
+  .toc-eyebrow {
+    display: block; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.11em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1.1rem;
+  }
+  .toc nav { display: flex; flex-direction: column; gap: 0.15rem; }
+  .toc a {
+    color: var(--ink-dim); text-decoration: none; font-size: 0.865rem; padding: 0.32rem 0.6rem;
+    border-radius: 6px; border-left: 2px solid transparent; transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+  .toc a:hover { color: var(--ink); background: var(--line-soft); }
+  .toc a.active { color: var(--accent-ink); background: var(--accent-tint); border-left-color: var(--accent); font-weight: 600; }
+  .toc .sub { padding-left: 1.2rem; font-size: 0.81rem; }
+
+  .content { min-width: 0; padding: 2.75rem 3rem 6rem; }
+
+  .doc-header { max-width: 40rem; margin-bottom: 3rem; }
+  .doc-header .eyebrow {
+    display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-2); margin-bottom: 0.9rem;
+  }
+  .doc-header .eyebrow::before { content: ""; width: 1.35rem; height: 1px; background: var(--accent-2); }
+  .doc-header h1 { font-size: 2.2rem; line-height: 1.16; margin: 0 0 0.85rem; letter-spacing: -0.01em; }
+  .doc-header .dek { font-size: 1.06rem; color: var(--ink-dim); margin: 0; max-width: 36rem; }
+  .doc-header .byline { font-family: var(--mono); font-size: 0.78rem; color: var(--ink-faint); margin: 0.9rem 0 0; }
+
+  section { max-width: 40rem; margin-bottom: 3.3rem; scroll-margin-top: 1.5rem; }
+  section.wide { max-width: 56rem; }
+  h2 { font-size: 1.42rem; margin: 0 0 0.35rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--line); }
+  h2 .num { color: var(--accent-2); font-variant-numeric: tabular-nums; margin-right: 0.55rem; }
+  h3 { font-size: 1.1rem; margin: 1.8rem 0 0.55rem; }
+  p { margin: 0.85rem 0; max-width: 42rem; }
+  .lede { color: var(--ink-dim); }
+  ul, ol { padding-left: 1.3rem; margin: 0.85rem 0; }
+  li { margin: 0.4rem 0; }
+  li::marker { color: var(--ink-faint); }
+  strong { font-weight: 650; }
+  code.inline { background: var(--accent-tint); color: var(--accent-ink); padding: 0.12rem 0.4rem; border-radius: 4px; font-size: 0.86em; }
+
+  .steps { list-style: none; margin: 1.4rem 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+  .steps > li {
+    display: flex; gap: 0.85rem; align-items: flex-start;
+    background: var(--paper-raised); border: 1px solid var(--line); border-radius: 10px;
+    padding: 0.85rem 1.05rem; box-shadow: var(--shadow);
+  }
+  .steps > li .n {
+    flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-tint); color: var(--accent-ink);
+    font-family: var(--mono); font-weight: 600; font-size: 0.78rem; display: flex; align-items: center; justify-content: center;
+    margin-top: 0.1rem;
+  }
+  .steps > li p { margin: 0; }
+  .steps > li strong { color: var(--ink); }
+
+  .panel-grid { display: grid; gap: 1rem; margin: 1.3rem 0; }
+  .panel {
+    background: var(--paper-raised); border: 1px solid var(--line); border-radius: 12px;
+    padding: 1.15rem 1.3rem 1.3rem; box-shadow: var(--shadow);
+  }
+  .panel .tab-name {
+    display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--serif); font-weight: 600;
+    font-size: 1.08rem; color: var(--ink); margin-bottom: 0.5rem;
+  }
+  .panel .tab-name .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); }
+  .panel p { margin: 0.5rem 0; max-width: none; }
+  .panel ul { margin: 0.5rem 0 0.2rem; }
+
+  .callout {
+    border: 1px solid var(--line); border-left: 3px solid var(--accent); background: var(--paper-raised);
+    border-radius: 8px; padding: 0.9rem 1.1rem; margin: 1.1rem 0; box-shadow: var(--shadow);
+  }
+  .callout p { margin: 0.3rem 0; max-width: none; }
+  .callout .label { display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.3rem; }
+  .callout.note { border-left-color: var(--accent); }
+  .callout.caution { border-left-color: var(--caution); background: var(--caution-bg); }
+  .callout.caution .label { color: var(--caution); }
+
+  .table-wrap { overflow-x: auto; margin: 1.1rem 0; border: 1px solid var(--line); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 0.87rem; background: var(--paper-raised); }
+  th, td { text-align: left; padding: 0.62rem 0.9rem; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  thead th { font-size: 0.7rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; border-bottom: 1px solid var(--line); }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num, th.num { font-variant-numeric: tabular-nums; text-align: right; }
+
+  .dataset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 0.85rem; margin: 1.2rem 0; }
+  .dataset-card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: 10px; padding: 0.9rem 1.05rem 1rem; box-shadow: var(--shadow); }
+  .dataset-card .name { font-family: var(--serif); font-weight: 600; font-size: 0.98rem; margin-bottom: 0.3rem; }
+  .dataset-card .n { display: inline-block; font-family: var(--mono); font-size: 0.72rem; color: var(--accent-2); background: var(--accent-2-tint); border-radius: 999px; padding: 0.1rem 0.5rem; }
+
+  .tag { font-family: var(--mono); font-size: 0.78rem; color: var(--accent-ink); background: var(--accent-tint); padding: 0.1rem 0.45rem; border-radius: 4px; }
+
+  .kbd-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.9rem 0; }
+  .kbd-row span { font-family: var(--mono); font-size: 0.78rem; color: var(--ink-dim); background: var(--paper-raised); border: 1px solid var(--line); padding: 0.28rem 0.6rem; border-radius: 999px; }
+
+  /* ── App mockups: styled reconstructions of real screens, built from ──── */
+  /* actual field names, prompt text, and extraction output captured live. */
+  .mock {
+    margin: 1.3rem 0; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--paper-raised); box-shadow: var(--shadow); overflow: hidden;
+  }
+  .mock-head {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1rem; border-bottom: 1px solid var(--line-soft);
+  }
+  .mock-head .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2); flex: none; }
+  .mock-head .label {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .mock-body { padding: 1.05rem 1.15rem 1.2rem; }
+  .mock-row { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.9rem; }
+  .mock-row:last-child { margin-bottom: 0; }
+  .mock-field { flex: 1 1 180px; min-width: 0; }
+  .mock-field .fl {
+    display: block; font-size: 0.72rem; color: var(--ink-faint); margin-bottom: 0.3rem;
+    letter-spacing: 0.02em;
+  }
+  .mock-select, .mock-input {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+    border: 1px solid var(--line); border-radius: 7px; padding: 0.42rem 0.65rem;
+    font-size: 0.85rem; background: var(--paper); color: var(--ink);
+  }
+  .mock-select .chev { color: var(--ink-faint); font-size: 0.7rem; }
+  .mock-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+    border: none; border-radius: 7px; padding: 0.5rem 0.9rem; font-size: 0.85rem; font-weight: 600;
+    background: var(--accent); color: var(--paper-raised); cursor: default;
+  }
+  .mock-btn.block { display: flex; width: 100%; }
+  .mock-radios { display: flex; flex-direction: column; gap: 0.42rem; }
+  .mock-radio { display: flex; align-items: center; gap: 0.55rem; font-size: 0.85rem; color: var(--ink-dim); }
+  .mock-radio .c { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--line); flex: none; }
+  .mock-radio.sel { color: var(--ink); font-weight: 600; }
+  .mock-radio.sel .c { border-color: var(--accent); background: radial-gradient(circle, var(--accent) 0 40%, transparent 42%); }
+  .mock-hint { font-size: 0.78rem; color: var(--ink-faint); margin-top: 0.5rem; }
+  .mock-prompt {
+    background: var(--accent-tint); border-radius: 8px; padding: 0.8rem 0.95rem;
+    font-size: 0.78rem; line-height: 1.6; color: var(--ink-dim); white-space: pre-wrap;
+    max-height: 9.5rem; overflow-y: auto;
+  }
+  .mock-prompt .num { color: var(--accent-ink); font-weight: 600; }
+  .mock-banner {
+    display: flex; align-items: center; gap: 0.5rem; font-size: 0.83rem;
+    background: var(--success-bg); border: 1px solid var(--success-line); color: var(--success);
+    border-radius: 8px; padding: 0.55rem 0.85rem; margin-bottom: 0.9rem; font-weight: 600;
+  }
+  .mock-banner .ok {
+    width: 16px; height: 16px; border-radius: 50%; background: var(--success); flex: none;
+    display: inline-flex; align-items: center; justify-content: center; color: var(--success-bg); font-size: 0.65rem;
+  }
+  .mock-caption { padding: 0.6rem 1.15rem 0.9rem; font-size: 0.8rem; color: var(--ink-faint); }
+  .mock table { min-width: 0; font-size: 0.8rem; }
+  .mock .table-wrap { margin: 0; border-radius: 8px; }
+
+  .code-block {
+    background: var(--code-bg); color: var(--code-ink); border-radius: 10px;
+    margin: 0.9rem 0; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .code-block .code-label {
+    font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--code-dim); padding: 0.55rem 1rem 0;
+  }
+  .code-block pre { margin: 0; padding: 0.7rem 1.1rem 1rem; overflow-x: auto; font-size: 0.85rem; line-height: 1.65; }
+  .code-block code { white-space: pre; }
+  .code-block .c { color: var(--code-dim); }
+
+  footer { max-width: 40rem; padding-top: 1.5rem; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: 0.82rem; }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    .toc { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--line-soft); padding: 1.25rem 1.5rem; }
+    .toc-brand { margin-bottom: 1rem; }
+    .toc nav { flex-direction: row; flex-wrap: wrap; gap: 0.4rem; }
+    .toc a { border-left: none; border: 1px solid var(--line); font-size: 0.8rem; }
+    .toc a.active { border-color: var(--accent); }
+    .toc .sub { display: none; }
+    .content { padding: 2rem 1.35rem 4rem; }
+    .doc-header h1 { font-size: 1.7rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .toc a { transition: none; } }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="toc-brand">Pathology Extractor</div>
+    <span class="toc-eyebrow">Guide contents</span>
+    <nav id="toc-nav">
+      <a href="#overview">Overview</a>
+      <a href="#getting-started">Getting started</a>
+      <a href="#provider-setup">Provider, model &amp; API key</a>
+      <a href="#fields-prompt">1. Fields &amp; Prompt</a>
+      <a href="#run-results">2. Run &amp; Results</a>
+      <a href="#compare">3. Compare Strategies</a>
+      <a href="#review">4. Review</a>
+      <a href="#cohort">5. Cohort</a>
+      <a href="#datasets">Practice datasets</a>
+      <a href="#strategies">Prompting strategies</a>
+      <a href="#azure">Using Azure OpenAI</a>
+      <a href="#tips">Tips &amp; troubleshooting</a>
+      <a href="#citation">Citing PathEx</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="doc-header">
+      <span class="eyebrow">User guide</span>
+      <h1>Using the Pathology Structured Extractor</h1>
+      <p class="dek">A walkthrough of the app itself — upload reports, pull structured fields out of them with an LLM, check the results against ground truth, and export what you need. Five tabs, one pipeline.</p>
+      <p class="byline">Yonghua Zhuang</p>
+    </header>
+
+    <section id="overview">
+      <h2><span class="num">00</span>Overview</h2>
+      <p>You give it an Excel file of pathology reports. It sends each report to an LLM along with a list of fields you want pulled out — stage, grade, margin status, receptor results, whatever the case calls for — and hands back a table with one row per case and one column per field.</p>
+      <p class="lede">If you also have a ground-truth spreadsheet for the same cases, the app scores every field automatically the moment extraction finishes, so you can see accuracy without a separate comparison step.</p>
+    </section>
+
+    <section id="getting-started">
+      <h2><span class="num">01</span>Getting started</h2>
+      <ol class="steps">
+        <li><span class="n">1</span><p>Open the app's URL in your browser. Browsing and setting up fields is free without an account — but <strong>running an extraction requires signing in</strong>, since results and API usage are tracked per user.</p></li>
+        <li><span class="n">2</span><p>Open the sidebar and use <strong>Create account</strong> the first time — pick a username (lowercase letters, digits, underscores) and a password of at least 6 characters. After that, <strong>Sign in</strong> with the same credentials.</p></li>
+        <li><span class="n">3</span><p>Upload a report file under <strong>Reports file</strong> in the sidebar. It needs one column with a case ID and one with the report text — for the bundled practice datasets, those are <code class="inline">ID</code> and <code class="inline">Report</code>.</p></li>
+        <li><span class="n">4</span><p>Optionally, upload a <strong>Ground truth</strong> file with the correct answers for the same cases. This unlocks automatic accuracy scoring everywhere in the app.</p></li>
+      </ol>
+
+      <div class="mock">
+        <div class="mock-head"><span class="dot"></span><span class="label">Sidebar — signed out</span></div>
+        <div class="mock-body">
+          <div class="mock-row">
+            <div class="mock-field" style="flex-basis:100%">
+              <div class="mock-select">🔑 Sign in <span class="chev">▾</span></div>
+            </div>
+          </div>
+          <p class="mock-hint" style="margin-top:0.7rem">Browsing is free — sign in to run extractions and save results.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="provider-setup">
+      <h2><span class="num">02</span>Provider, model &amp; API key</h2>
+      <p class="lede">Before anything can run, the sidebar needs three things set: which provider to send reports to, which model at that provider, and a key it's allowed to bill against. All three live together near the top of the sidebar, above the file uploaders.</p>
+
+      <div class="mock">
+        <div class="mock-head"><span class="dot"></span><span class="label">Sidebar — provider setup</span></div>
+        <div class="mock-body">
+          <div class="mock-row">
+            <div class="mock-field" style="flex-basis:100%">
+              <span class="fl">Provider</span>
+              <div class="mock-select">OpenAI <span class="chev">▾</span></div>
+            </div>
+          </div>
+          <div class="mock-row">
+            <div class="mock-field" style="flex-basis:100%">
+              <span class="fl">Model</span>
+              <div class="mock-select">gpt-4o-mini <span class="chev">▾</span></div>
+            </div>
+          </div>
+          <div class="mock-row">
+            <div class="mock-field" style="flex-basis:100%">
+              <div class="mock-radios" style="flex-direction:row; gap:1.2rem">
+                <div class="mock-radio sel"><span class="c"></span>Shared key</div>
+                <div class="mock-radio"><span class="c"></span>My own key</div>
+              </div>
+            </div>
+          </div>
+          <p class="mock-hint" style="margin-top:0.3rem">40 / 1000 calls used (960 left)</p>
+        </div>
+      </div>
+
+      <h3>Provider &amp; model</h3>
+      <p>Four providers are available from the <strong>Provider</strong> dropdown. Pick one and <strong>Model</strong> below it updates to that provider's known models — or choose <span class="tag">Custom…</span> at the bottom of the list and type any model id yourself, useful the day a provider ships something newer than this guide.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Provider</th><th>Known models</th><th>Get a key at</th></tr></thead>
+          <tbody>
+            <tr><td>OpenAI</td><td>gpt-4o-mini, gpt-4, gpt-4.1, gpt-5, Custom…</td><td><code class="inline">platform.openai.com</code></td></tr>
+            <tr><td>Google Gemini</td><td>gemini-flash-latest, gemini-pro-latest, Custom…</td><td><code class="inline">aistudio.google.com</code></td></tr>
+            <tr><td>OpenRouter</td><td>Claude, Gemini, Llama, and Mistral variants, Custom…</td><td><code class="inline">openrouter.ai/keys</code></td></tr>
+            <tr><td>Azure OpenAI</td><td>A deployment name you type in yourself — see <a href="#azure">Using Azure OpenAI</a></td><td>Institutional resource, not a public key</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Key source</h3>
+      <div class="callout note">
+        <span class="label">Shared key vs. your own</span>
+        <p>If this deployment has a shared key configured, it only ever shows up as an option for <strong>OpenAI</strong>, and it's capped at <strong>1,000 calls</strong> — the progress bar above ("<code class="inline">X / 1000 calls used</code>") tracks how much of that you've used. Every other provider — and OpenAI too, once you've used up the shared budget or would rather not draw against it — needs <strong>My own key</strong>: paste a key from that provider's site and click <strong>Add</strong>. A green confirmation line appears once it's set.</p>
+        <p>Once that 1,000-call cap is hit, extraction stops making new calls against the shared key specifically; switch to <strong>My own key</strong> to keep going.</p>
+      </div>
+      <p>Keys are session-only by default — closing the tab or signing out clears them, and you'll paste again next time. If you're signed in, a <strong>💾 Remember this on this device (encrypted)</strong> checkbox appears once a key is set; check it to save an encrypted copy to your account so you don't have to re-paste on your next sign-in. It's encrypted with a key derived from your account password, so only you can decrypt it — resetting that password makes any saved copy unrecoverable.</p>
+
+      <div class="callout caution">
+        <span class="label">Azure OpenAI works differently</span>
+        <p>Azure OpenAI the service supports a static API key too, but this app's Azure integration authenticates with a short-lived Entra ID bearer token from your institution's Azure CLI login instead, and has its own Deployment name and Resource endpoint fields instead of a model dropdown. It gets a full walkthrough of its own in <a href="#azure">Using Azure OpenAI</a>.</p>
+      </div>
+
+      <div class="callout caution">
+        <span class="label">Before you upload — PHI</span>
+        <p>Whatever provider is selected above receives the report text you upload. For the three public providers (OpenAI, Google Gemini, OpenRouter), that means report text leaves your institution's network and reaches a public third-party API — do not upload reports with PHI — upload only de-identified or synthetic reports. Azure OpenAI keeps report text within your institution's own deployment, but you should still confirm with your IT/privacy office that this specific setup is approved for PHI before uploading real patient reports. The app repeats this same caution directly above the file uploaders once a provider is picked.</p>
+      </div>
+    </section>
+
+    <section id="fields-prompt" class="wide">
+      <h2><span class="num">03</span>Walking through the tabs</h2>
+      <p class="lede">The five tabs run left to right along the top of the app, each one stage of the same pipeline: define what to pull out, run it, compare approaches, triage the results, then correct and export.</p>
+
+      <div class="panel-grid">
+        <div class="panel">
+          <span class="tab-name"><span class="dot"></span>1 · Fields &amp; Prompt</span>
+          <p>Decide what the extractor should look for. Apply a built-in <strong>preset</strong> for a supported cancer type — it fills in the field list, the allowed values for each field, and (where available) the ground-truth column mapping for you. Or skip the preset and add your own fields with the <strong>+</strong> button, each with its own name and a slash-separated list of allowed values (e.g. <code class="inline">present/absent/Not mentioned</code>).</p>
+          <p>On the right, pick a <strong>prompting strategy</strong> — see <a href="#strategies">Prompting strategies</a> below — and the exact prompt that will be sent is rendered live underneath it, so you can sanity-check it before spending any API calls.</p>
+
+          <div class="mock">
+            <div class="mock-head"><span class="dot"></span><span class="label">Fields &amp; Prompt — Colorectal TCGA-242 preset applied</span></div>
+            <div class="mock-body">
+              <div class="mock-row">
+                <div class="mock-field" style="flex-basis:60%">
+                  <span class="fl">Preset</span>
+                  <div class="mock-select">Colorectal Cancer — TCGA-242 (CAP/AJCC) <span class="chev">▾</span></div>
+                </div>
+                <div class="mock-field" style="flex:0 0 auto; align-self:flex-end">
+                  <div class="mock-btn">Apply</div>
+                </div>
+              </div>
+
+              <div class="mock-row">
+                <div class="mock-field" style="flex-basis:58%">
+                  <span class="fl">Fields · 10 defined</span>
+                  <div class="table-wrap">
+                    <table>
+                      <thead><tr><th>Field name</th><th>Options</th></tr></thead>
+                      <tbody>
+                        <tr><td>Histologic Type</td><td>adenocarcinoma/mucinous…</td></tr>
+                        <tr><td>Histologic Grade</td><td>well differentiated/…</td></tr>
+                        <tr><td>T-Stage (TNM)</td><td>pT1/pT2/pT3/pT4a/pT4b/…</td></tr>
+                        <tr><td>N-Stage (TNM)</td><td>pN0/pN1a/pN1b/…</td></tr>
+                        <tr><td>Lymph Nodes Examined</td><td>Integer/Not mentioned</td></tr>
+                        <tr><td>Resection Margins</td><td>R0/R1/R2/Not mentioned</td></tr>
+                        <tr><td>Lymphovascular Invasion</td><td>present/absent/…</td></tr>
+                        <tr><td>Perineural Invasion</td><td>present/absent/…</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="mock-field" style="flex-basis:38%">
+                  <span class="fl">Strategy</span>
+                  <div class="mock-radios">
+                    <div class="mock-radio"><span class="c"></span>Chain-of-Thought</div>
+                    <div class="mock-radio"><span class="c"></span>Persona · CoT</div>
+                    <div class="mock-radio"><span class="c"></span>Persona · Few-shot</div>
+                    <div class="mock-radio sel"><span class="c"></span>Persona · Zero-shot</div>
+                    <div class="mock-radio"><span class="c"></span>Zero-shot</div>
+                  </div>
+                  <p class="mock-hint">Expert pathologist persona + standard extraction.</p>
+                </div>
+              </div>
+
+              <div class="mock-row">
+                <div class="mock-field" style="flex-basis:100%">
+                  <span class="fl">Prompt preview</span>
+                  <div class="mock-prompt">You are a highly experienced pathologist with over 20 years of expertise in diagnosing and reporting on various types of cancers. Your task is to extract specific information from pathology reports with precision and accuracy.
+
+Please extract key information from the provided pathology report and categorize it under the respective headings. All of them are formatted as follows:
+
+    Heading: [Possible options]
+
+Stick precisely to the given answer options for each category. If the report does not specify information about a particular category, provide the response as "Not mentioned."
+
+The output should be structured in a JSON format.
+
+<span class="num">1.</span> Histologic Type: [adenocarcinoma/mucinous adenocarcinoma/signet ring cell/…]
+<span class="num">2.</span> Histologic Grade: [well differentiated/moderately differentiated/…]
+…</div>
+                </div>
+              </div>
+            </div>
+            <div class="mock-caption">Live example — 10-field preset, Persona · Zero-shot strategy, prompt truncated for space.</div>
+          </div>
+        </div>
+
+        <div class="panel" id="run-results">
+          <span class="tab-name"><span class="dot"></span>2 · Run &amp; Results</span>
+          <p>Press <strong>Run Extraction</strong>. Every report is sent once (twice for the verification strategies) and the results land in a table, one row per case. If a ground-truth file is attached and mapped, per-field accuracy appears automatically — no extra step.</p>
+          <p>Every result is cached by report text and prompt. Re-running the same case with the same prompt returns instantly at no cost — useful when you're only tweaking the prompt for one field and don't want to re-pay for the rest.</p>
+
+          <div class="mock">
+            <div class="mock-head"><span class="dot"></span><span class="label">Run &amp; Results — after Run Extraction</span></div>
+            <div class="mock-body">
+              <div class="mock-banner"><span class="ok">✓</span>Extracted 2 cases · 2 new API calls · 0 from cache</div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Case_ID</th><th>Histologic Type</th><th>Grade</th><th>T-Stage</th><th>N-Stage</th><th>LN Exam.</th><th>LN Pos.</th><th>Margins</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>demo_1</td><td>adenocarcinoma</td><td>moderately diff.</td><td>pT3</td><td>pN0</td><td class="num">24</td><td class="num">0</td><td>R0</td></tr>
+                    <tr><td>demo_2</td><td>adenocarcinoma</td><td>moderately diff.</td><td>pT2</td><td>pN1a</td><td class="num">15</td><td class="num">2</td><td>R1</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="mock-caption">Live example — 2-case run against the demo dataset used to test this guide; every field matched the ground truth.</div>
+          </div>
+        </div>
+
+        <div class="panel" id="compare">
+          <span class="tab-name"><span class="dot"></span>3 · Compare Strategies</span>
+          <p>Select two or more prompting strategies and the app runs the same reports through each, then shows a side-by-side accuracy heatmap, field by field. This is the fastest way to answer "is Chain-of-Thought actually worth the extra tokens for this cancer type?" with data instead of a guess.</p>
+        </div>
+
+        <div class="panel" id="review">
+          <span class="tab-name"><span class="dot"></span>4 · Review</span>
+          <p>Step through the results case by case. Where the model got something wrong, edit the value in the <strong>Corrected</strong> column — the original extraction stays visible alongside it. When you're done, download the final CSV with your corrections merged in.</p>
+        </div>
+
+        <div class="panel" id="cohort">
+          <span class="tab-name"><span class="dot"></span>5 · Cohort</span>
+          <p>Define inclusion/exclusion criteria against the extracted fields — for example, "T-Stage is pT3 or higher" — and see how many cases would survive that cohort definition, plus a breakdown of why the excluded ones were dropped.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="datasets" class="wide">
+      <h2><span class="num">04</span>Practice datasets</h2>
+      <p>Five datasets ship with the app under <strong>Sample data</strong> for trying it out before you bring your own reports — four cancer types from the published TCGA-242 benchmark, plus a full prostate (PRAD) cohort. Each comes with a matching ground-truth file, already mapped to its preset.</p>
+
+      <div class="dataset-grid">
+        <div class="dataset-card"><div class="name">Breast</div><span class="n">n = 50</span></div>
+        <div class="dataset-card"><div class="name">Colorectal</div><span class="n">n = 50</span></div>
+        <div class="dataset-card"><div class="name">Esophagus</div><span class="n">n = 50</span></div>
+        <div class="dataset-card"><div class="name">Liver</div><span class="n">n = 49</span></div>
+        <div class="dataset-card"><div class="name">Prostate (PRAD)</div><span class="n">n = 574</span></div>
+      </div>
+      <p class="lede">Good first move: pick one, apply its matching preset in <strong>Fields &amp; Prompt</strong>, run it with the default strategy, and look at the accuracy numbers on <strong>Run &amp; Results</strong> before trying it on your own data.</p>
+    </section>
+
+    <section id="strategies" class="wide">
+      <h2><span class="num">05</span>Prompting strategies</h2>
+      <p>Eight strategies live in <strong>Fields &amp; Prompt</strong>, trading prompt length (and, for the two verification strategies, a second API call) for accuracy. If you're not sure where to start, <span class="tag">Persona · Zero-shot</span> is a solid default — an expert-pathologist persona with a standard extraction prompt.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Strategy</th><th>What it does</th><th class="num">Calls / case</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag">Zero-shot</span></td><td>Paper-exact prompt, no persona.</td><td class="num">1</td></tr>
+            <tr><td><span class="tag">Chain-of-Thought</span></td><td>Step-by-step reasoning before the JSON output.</td><td class="num">1</td></tr>
+            <tr><td><span class="tag">Chain-of-Verif.</span></td><td>Extract, then a second call verifies the result.</td><td class="num">2</td></tr>
+            <tr><td><span class="tag">Persona · Zero-shot</span></td><td>Expert pathologist persona, standard extraction.</td><td class="num">1</td></tr>
+            <tr><td><span class="tag">Persona · CoT</span></td><td>Persona plus reasoning embedded in the JSON.</td><td class="num">1</td></tr>
+            <tr><td><span class="tag">Persona · CoV</span></td><td>Persona plus two-pass verification.</td><td class="num">2</td></tr>
+            <tr><td><span class="tag">Persona · Few-shot</span></td><td>Persona plus one worked example.</td><td class="num">1</td></tr>
+            <tr><td><span class="tag">Persona · Strict</span></td><td>Persona plus five strict extraction rules.</td><td class="num">1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="azure" class="wide">
+      <h2><span class="num">06</span>Using Azure OpenAI</h2>
+      <p class="lede">If you're at an institution whose IT department already runs an Azure OpenAI resource, this is the provider to use — reports stay on institutional infrastructure instead of going to a public API. It works a little differently from the other three providers, so it gets its own walkthrough.</p>
+
+      <div class="callout note">
+        <span class="label">The key difference</span>
+        <p>OpenAI, Gemini, and OpenRouter all take a long-lived API key you paste in once. Azure OpenAI itself supports a static key too — many institutions disable it for security/compliance reasons and require <strong>Entra ID (Azure AD) authentication</strong> instead, which is the path this app implements: you sign in with your institutional account and generate a short-lived <strong>bearer token</strong> rather than pasting a permanent secret. If your institution's Azure resource does have a static key enabled, this app doesn't have a field for it — the bearer-token flow below is the only Azure path it supports.</p>
+      </div>
+
+      <div class="callout caution">
+        <span class="label">Your institution's setup may differ</span>
+        <p>The steps below were written against one specific institutional Azure OpenAI deployment. The <code class="inline">az login</code> and token commands are standard Azure CLI syntax that work for any Azure AD account, but whether Entra ID auth is required at all, whether a VPN is needed, and how resources and deployments are named are all choices each institution's IT department makes independently. If you're setting this up somewhere other than where this guide was written, treat the steps as a template and confirm the specifics — especially network access and resource/deployment names — with your own IT or Azure administrator before assuming they'll match exactly.</p>
+      </div>
+
+      <ol class="steps">
+        <li><span class="n">1</span><p><strong>Prerequisites:</strong> the Azure CLI installed (<code class="inline">az</code>), signed in to your institutional account, and — if the resource sits on a private network, as is typical — connected to your institution's VPN or on-campus network. Check IT documentation for your institution's exact resource name and required network access.</p></li>
+
+        <li><span class="n">2</span>
+          <div style="flex:1">
+            <p><strong>Sign in and get a bearer token.</strong> If you haven't already:</p>
+            <div class="code-block">
+              <div class="code-label">terminal</div>
+              <pre><code>az login</code></pre>
+            </div>
+            <p>Then generate a token scoped to Azure Cognitive Services — this is the exact command the app itself shows you, so you can copy it from either place:</p>
+            <div class="code-block">
+              <div class="code-label">terminal</div>
+              <pre><code>az account get-access-token \
+  --resource https://cognitiveservices.azure.com \
+  --query accessToken -o tsv</code></pre>
+            </div>
+            <p class="mock-hint" style="margin-top:0">This command's <em>entire output</em> is the token — one long line starting with <code class="inline">eyJ…</code>, no quotes or JSON around it. Copy that whole line; you'll paste it into the app in step 4. It's short-lived, so if requests ever start failing with an authentication error, just re-run this command and paste the fresh token in.</p>
+          </div>
+        </li>
+
+        <li><span class="n">3</span><p>In the app sidebar, set <strong>Provider</strong> to <strong>Azure OpenAI</strong>. The fields below it change to match: a <strong>Deployment name</strong> box, a bearer-token key field, and a <strong>Resource endpoint</strong> field — instead of the usual model dropdown and static API key.</p></li>
+
+        <li><span class="n">4</span><p>Type the exact <strong>Deployment name</strong> your institution has configured into the box provided — not a generic model name like <code class="inline">gpt-4o</code>, but whatever your IT team named the deployment when they set it up. Ask your Azure administrator, check the Azure Portal, or run:</p>
+          <div class="code-block">
+            <div class="code-label">terminal</div>
+            <pre><code>az cognitiveservices account deployment list \
+  --name &lt;your-resource-name&gt; \
+  --resource-group &lt;your-resource-group&gt;</code></pre>
+          </div>
+        </li>
+
+        <li><span class="n">5</span><p>Paste the bearer token from step 2 into the key field and click <strong>Add</strong>. You should see a green confirmation that the key is set.</p></li>
+
+        <li><span class="n">6</span><p>Set <strong>Resource endpoint</strong> to just your resource's base URL — no path, no deployment name:</p>
+          <div class="code-block">
+            <div class="code-label">resource endpoint</div>
+            <pre><code>https://<span class="c">&lt;your-resource&gt;</span>.openai.azure.com</code></pre>
+          </div>
+          <p class="mock-hint" style="margin-top:0.5rem">You'll find this on the resource's "Keys and Endpoint" page in the Azure Portal. The app builds the full request URL for you from this plus the deployment name from step 4 — it shows the result as a "Full endpoint" caption underneath, so you can sanity-check it before running anything.</p>
+        </li>
+
+        <li><span class="n">7</span>
+          <div style="flex:1">
+            <p><strong>Optional — remember these settings.</strong> If you're signed in to the app, a <strong>💾 Remember this on this device (encrypted)</strong> checkbox appears below the key field. Checking it encrypts your deployment name, resource endpoint, and current token and saves them to your account, so you don't have to retype the deployment/resource next time you sign in.</p>
+            <p class="mock-hint" style="margin-top:0">The bearer token itself is still short-lived even when saved — sign-in will restore it, but if it's already expired you'll just paste a fresh one over it and check the box again. Resetting your app account password also invalidates anything saved this way.</p>
+          </div>
+        </li>
+
+        <li><span class="n">8</span><p>Set up your fields and preset as usual (see <a href="#fields-prompt">Walking through the tabs</a>) and run extraction — requests now go to your institution's Azure endpoint instead of the public API.</p></li>
+      </ol>
+
+      <div class="callout caution">
+        <span class="label">Common errors</span>
+        <p><strong><code class="inline">DeploymentNotFound</code></strong> — the <strong>Deployment name</strong> doesn't match an actual deployment on the resource. Double-check against the <code class="inline">az cognitiveservices account deployment list</code> output from step 4; a placeholder or guessed name (like assuming <code class="inline">gpt-4o-mini</code> exists) will fail even if that model exists elsewhere.</p>
+        <p><strong>Connection timeout, or the run just hangs</strong> — usually means you're not on the VPN or network the private endpoint requires. Confirm you're connected, then retry. Also double-check the Resource endpoint has no typos and no trailing path — the app's "Full endpoint" caption should look like a real, complete URL before you hit Run.</p>
+        <p><strong>Worked before, now failing with an auth error</strong> — the bearer token expired. Generate a new one (step 2) and paste it in again — this is normal, not a bug, and happens whether or not you're using "Remember this on this device."</p>
+      </div>
+    </section>
+
+    <section id="tips" class="wide">
+      <h2><span class="num">07</span>Tips &amp; troubleshooting</h2>
+
+      <div class="callout">
+        <span class="label">Sidebar flagged something after I uploaded reports?</span>
+        <p>That's the <strong>PHI pre-pass</strong> — a local regex scan that runs on every uploaded reports file and looks for common identifier patterns (SSNs, phone numbers, emails, labeled MRN/DOB/name fields, street addresses). It's a heuristic safety net, not certified de-identification — a clean scan means "no obvious red flags," not a guarantee. Upload only de-identified or synthetic reports regardless of what it shows.</p>
+      </div>
+
+      <div class="callout">
+        <span class="label">Run & Results flagged a consistency issue?</span>
+        <p>That's the <strong>consistency check</strong> — a local, deterministic check on the fields you already extracted, not another LLM call. It catches values outside a field's own defined options (e.g. a stray <code class="inline">pMX</code>), more positive lymph nodes than nodes examined, and N-Stage <code class="inline">N0</code> paired with a nonzero positive-node count. It never edits anything — it just flags cases worth a closer look in Review.</p>
+      </div>
+
+      <div class="callout">
+        <span class="label">What does 🧠 Explain this case do?</span>
+        <p>One LLM call, for the whole case, asks the model what in the report supports each extracted value — and to say plainly when a value is a direct quote versus an inference, unit conversion, or interpretation. A field flagged <strong>⚠️ UNSUPPORTED</strong> means the model itself doesn't think the report backs up that value, worth a close look. This is the model's own after-the-fact explanation, not proof — a starting point for review, not a guarantee.</p>
+      </div>
+
+      <div class="callout">
+        <span class="label">Can I describe my cohort instead of building rules field-by-field?</span>
+        <p>Yes — in the <strong>Cohort</strong> tab, open <strong>"Describe your cohort in plain English"</strong> above the Inclusion/Exclusion table and type something like <em>"liver cases with vascular invasion and R1 margins."</em> One LLM call translates it into rules using your actual extracted fields and their allowed values — shown as a preview first. Nothing is added to the table until you click <strong>Add these rules</strong>.</p>
+      </div>
+
+      <div class="callout">
+        <span class="label">No accuracy numbers showing up?</span>
+        <p>Check the <strong>GT column mapping</strong> expander in the sidebar — each extracted field needs to be matched to the right column in your ground-truth file. Built-in presets pre-fill this for you; custom field sets need it set by hand.</p>
+      </div>
+
+      <div class="callout">
+        <span class="label">Re-running feels instant</span>
+        <p>That's the cache working as intended — identical report text plus identical prompt returns the stored result instead of calling the API again. Change the prompt, strategy, or field list and it'll extract fresh.</p>
+      </div>
+
+      <div class="callout">
+        <span class="label">Uploaded the wrong preset by accident?</span>
+        <p>Switching the preset in <strong>Fields &amp; Prompt</strong> resets the field list and the GT column mapping — reapply the one you meant to use and you're back to a clean state.</p>
+      </div>
+
+      <div class="callout">
+        <span class="label">Signing in partway through setup?</span>
+        <p>If you configure fields or upload files while signed out and then sign in (which you'll need to do before running anything — see <a href="#getting-started">Getting started</a>), the app resets to your account's saved defaults. Re-apply your preset and re-attach your ground-truth file after signing in, then you're good to run.</p>
+      </div>
+
+      <p class="lede">Questions the app itself can answer: the <strong>Help</strong> tab in the top nav has a condensed reference for all of the above, plus the full prompting-strategy table, without leaving the app.</p>
+    </section>
+
+    <section id="citation">
+      <h2><span class="num">08</span>Citing PathEx</h2>
+      <p>If PathEx contributes to your research, please cite the manuscript describing it:</p>
+      <div class="code-block">
+        <div class="code-label">citation</div>
+        <pre><code>Zhuang Y, Alami V, Gao D. PathEx: A Web-Based Multi-Strategy Platform for
+Large Language Model–Driven Structured Extraction from Pathology Reports.
+Manuscript in preparation.</code></pre>
+      </div>
+    </section>
+
+    <footer>Pathology Structured Extractor — user guide. Author: Yonghua Zhuang.</footer>
+  </main>
+</div>
+
+<script>
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('#toc-nav a'));
+    var sections = links.map(function (a) { return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+    if (!('IntersectionObserver' in window) || sections.length === 0) return;
+    var byId = {};
+    links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var link = byId[entry.target.id];
+        if (!link) return;
+        if (entry.isIntersecting) {
+          links.forEach(function (a) { a.classList.remove('active'); });
+          link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function (s) { observer.observe(s); });
+  })();
+</script>
