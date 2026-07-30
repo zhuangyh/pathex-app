@@ -24,7 +24,7 @@ Surgical pathology reports contain rich structured data (tumor size, grade, stag
 
 ## Try it without your own data
 
-Sample de-identified datasets are bundled under `sample_data/` — a 340-case prostate cancer (PRAD) benchmark and four TCGA-242 cancer types (breast, colorectal, esophagus, liver), each with matched ground-truth files — so you can try the full workflow before uploading anything of your own.
+Sample de-identified datasets are bundled under `sample_data/` — four TCGA-242 cancer types (breast, colorectal, esophagus, liver), each with matched ground-truth files — so you can try the full workflow before uploading anything of your own. The PRAD benchmark used in validation is available via its original publication (Wölflein et al.) rather than redistributed here.
 
 ## Running it locally
 
