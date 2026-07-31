@@ -1,0 +1,17 @@
+.git
+.gitignore
+.dockerignore
+.env
+.env.example
+storage/
+app_cache/
+users.yaml
+__pycache__/
+*.pyc
+.DS_Store
+streamlit.log
+sample_data.zip
+.devcontainer/
+README.md
+LICENSE
+docs_screenshot.png
