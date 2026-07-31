@@ -1,0 +1,402 @@
+<meta charset="utf-8">
+<title>PathEx — Deployment Guide</title>
+<style>
+  :root {
+    --paper: #f4f2f7;
+    --paper-raised: #ffffff;
+    --ink: #201a2c;
+    --ink-dim: #5b5468;
+    --ink-faint: #8a839a;
+    --accent: #5a3b94;
+    --accent-ink: #3e2569;
+    --accent-tint: #ece6f7;
+    --accent-2: #c0577a;
+    --accent-2-tint: #f8e9ee;
+    --line: #ded7ea;
+    --line-soft: #eae5f1;
+    --code-bg: #221a30;
+    --code-ink: #e7e1f2;
+    --code-dim: #9c8fb8;
+    --success: #2f7a4f;
+    --success-bg: #e8f4ec;
+    --success-line: #bfe0cc;
+    --caution: #8a5a17;
+    --caution-bg: #fbf0dc;
+    --caution-line: #e9d19c;
+    --shadow: 0 1px 2px rgba(32, 26, 44, 0.04), 0 8px 24px rgba(32, 26, 44, 0.06);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, ui-serif, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #15121c;
+      --paper-raised: #1d1826;
+      --ink: #ede9f5;
+      --ink-dim: #a79cc0;
+      --ink-faint: #7a7192;
+      --accent: #b295e8;
+      --accent-ink: #d9c9ff;
+      --accent-tint: #2a2140;
+      --accent-2: #e491ac;
+      --accent-2-tint: #33202a;
+      --line: #322a44;
+      --line-soft: #251f34;
+      --code-bg: #0f0c17;
+      --code-ink: #e7e1f2;
+      --code-dim: #7a6f96;
+      --success: #6fcf97;
+      --success-bg: #16281d;
+      --success-line: #2c4a37;
+      --caution: #e0b15c;
+      --caution-bg: #2e2612;
+      --caution-line: #4d3d1c;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #15121c; --paper-raised: #1d1826; --ink: #ede9f5; --ink-dim: #a79cc0; --ink-faint: #7a7192;
+    --accent: #b295e8; --accent-ink: #d9c9ff; --accent-tint: #2a2140; --accent-2: #e491ac; --accent-2-tint: #33202a;
+    --line: #322a44; --line-soft: #251f34; --code-bg: #0f0c17; --code-ink: #e7e1f2; --code-dim: #7a6f96;
+    --success: #6fcf97; --success-bg: #16281d; --success-line: #2c4a37;
+    --caution: #e0b15c; --caution-bg: #2e2612; --caution-line: #4d3d1c;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+  :root[data-theme="light"] {
+    --paper: #f4f2f7; --paper-raised: #ffffff; --ink: #201a2c; --ink-dim: #5b5468; --ink-faint: #8a839a;
+    --accent: #5a3b94; --accent-ink: #3e2569; --accent-tint: #ece6f7; --accent-2: #c0577a; --accent-2-tint: #f8e9ee;
+    --line: #ded7ea; --line-soft: #eae5f1; --code-bg: #221a30; --code-ink: #e7e1f2; --code-dim: #9c8fb8;
+    --success: #2f7a4f; --success-bg: #e8f4ec; --success-line: #bfe0cc;
+    --caution: #8a5a17; --caution-bg: #fbf0dc; --caution-line: #e9d19c;
+    --shadow: 0 1px 2px rgba(32, 26, 44, 0.04), 0 8px 24px rgba(32, 26, 44, 0.06);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:hover { color: var(--accent-ink); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  h1, h2, h3, h4 { font-family: var(--serif); font-weight: 600; text-wrap: balance; color: var(--ink); }
+  code, pre { font-family: var(--mono); }
+  ::selection { background: var(--accent-tint); color: var(--accent-ink); }
+
+  .shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); max-width: 1120px; margin: 0 auto; }
+  .toc {
+    position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
+    padding: 2.75rem 1.5rem 2rem 2rem; border-right: 1px solid var(--line-soft); scrollbar-width: thin;
+  }
+  .toc-brand { font-family: var(--serif); font-weight: 600; font-size: 1.05rem; margin-bottom: 1.75rem; }
+  .toc-eyebrow {
+    display: block; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.11em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1.1rem;
+  }
+  .toc nav { display: flex; flex-direction: column; gap: 0.15rem; }
+  .toc a {
+    color: var(--ink-dim); text-decoration: none; font-size: 0.865rem; padding: 0.32rem 0.6rem;
+    border-radius: 6px; border-left: 2px solid transparent; transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+  .toc a:hover { color: var(--ink); background: var(--line-soft); }
+  .toc a.active { color: var(--accent-ink); background: var(--accent-tint); border-left-color: var(--accent); font-weight: 600; }
+  .toc .sub { padding-left: 1.2rem; font-size: 0.81rem; }
+
+  .content { min-width: 0; padding: 2.75rem 3rem 6rem; }
+
+  .doc-header { max-width: 40rem; margin-bottom: 3rem; }
+  .doc-header .eyebrow {
+    display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-2); margin-bottom: 0.9rem;
+  }
+  .doc-header .eyebrow::before { content: ""; width: 1.35rem; height: 1px; background: var(--accent-2); }
+  .doc-header h1 { font-size: 2.2rem; line-height: 1.16; margin: 0 0 0.85rem; letter-spacing: -0.01em; }
+  .doc-header .dek { font-size: 1.06rem; color: var(--ink-dim); margin: 0; max-width: 36rem; }
+  .doc-header .byline { font-family: var(--mono); font-size: 0.78rem; color: var(--ink-faint); margin: 0.9rem 0 0; }
+
+  section { max-width: 40rem; margin-bottom: 3.3rem; scroll-margin-top: 1.5rem; }
+  section.wide { max-width: 56rem; }
+  h2 { font-size: 1.42rem; margin: 0 0 0.35rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--line); }
+  h2 .num { color: var(--accent-2); font-variant-numeric: tabular-nums; margin-right: 0.55rem; }
+  h3 { font-size: 1.1rem; margin: 1.8rem 0 0.55rem; }
+  p { margin: 0.85rem 0; max-width: 42rem; }
+  .lede { color: var(--ink-dim); }
+  ul, ol { padding-left: 1.3rem; margin: 0.85rem 0; }
+  li { margin: 0.4rem 0; }
+  li::marker { color: var(--ink-faint); }
+  strong { font-weight: 650; }
+  code.inline { background: var(--accent-tint); color: var(--accent-ink); padding: 0.12rem 0.4rem; border-radius: 4px; font-size: 0.86em; }
+
+  .steps { list-style: none; margin: 1.4rem 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+  .steps > li {
+    display: flex; gap: 0.85rem; align-items: flex-start;
+    background: var(--paper-raised); border: 1px solid var(--line); border-radius: 10px;
+    padding: 0.85rem 1.05rem; box-shadow: var(--shadow);
+  }
+  .steps > li .n {
+    flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-tint); color: var(--accent-ink);
+    font-family: var(--mono); font-weight: 600; font-size: 0.78rem; display: flex; align-items: center; justify-content: center;
+    margin-top: 0.1rem;
+  }
+  .steps > li p { margin: 0; }
+  .steps > li strong { color: var(--ink); }
+
+  .panel-grid { display: grid; gap: 1rem; margin: 1.3rem 0; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .panel {
+    background: var(--paper-raised); border: 1px solid var(--line); border-radius: 12px;
+    padding: 1.15rem 1.3rem 1.3rem; box-shadow: var(--shadow);
+  }
+  .panel .tab-name {
+    display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--serif); font-weight: 600;
+    font-size: 1.08rem; color: var(--ink); margin-bottom: 0.5rem;
+  }
+  .panel .tab-name .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); }
+  .panel p { margin: 0.5rem 0; max-width: none; }
+  .panel ul { margin: 0.5rem 0 0.2rem; }
+
+  .callout {
+    border: 1px solid var(--line); border-left: 3px solid var(--accent); background: var(--paper-raised);
+    border-radius: 8px; padding: 0.9rem 1.1rem; margin: 1.1rem 0; box-shadow: var(--shadow);
+  }
+  .callout p { margin: 0.3rem 0; max-width: none; }
+  .callout .label { display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.3rem; }
+  .callout.note { border-left-color: var(--accent); }
+  .callout.caution { border-left-color: var(--caution); background: var(--caution-bg); }
+  .callout.caution .label { color: var(--caution); }
+
+  .table-wrap { overflow-x: auto; margin: 1.1rem 0; border: 1px solid var(--line); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 0.87rem; background: var(--paper-raised); }
+  th, td { text-align: left; padding: 0.62rem 0.9rem; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  thead th { font-size: 0.7rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; border-bottom: 1px solid var(--line); }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num, th.num { font-variant-numeric: tabular-nums; text-align: right; }
+
+  .tag { font-family: var(--mono); font-size: 0.78rem; color: var(--accent-ink); background: var(--accent-tint); padding: 0.1rem 0.45rem; border-radius: 4px; }
+
+  .checklist { list-style: none; margin: 1.2rem 0; padding: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+  .checklist li {
+    display: flex; gap: 0.7rem; align-items: flex-start; margin: 0;
+    background: var(--paper-raised); border: 1px solid var(--line); border-radius: 8px;
+    padding: 0.65rem 0.9rem; box-shadow: var(--shadow); font-size: 0.92rem;
+  }
+  .checklist li::before {
+    content: ""; flex: none; width: 16px; height: 16px; margin-top: 0.15rem; border-radius: 4px;
+    border: 1.5px solid var(--accent); background: var(--accent-tint);
+  }
+
+  .code-block {
+    background: var(--code-bg); color: var(--code-ink); border-radius: 10px;
+    margin: 0.9rem 0; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .code-block .code-label {
+    font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--code-dim); padding: 0.55rem 1rem 0;
+  }
+  .code-block pre { margin: 0; padding: 0.7rem 1.1rem 1rem; overflow-x: auto; font-size: 0.85rem; line-height: 1.65; }
+  .code-block code { white-space: pre; }
+  .code-block .c { color: var(--code-dim); }
+
+  footer { max-width: 40rem; padding-top: 1.5rem; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: 0.82rem; }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    .toc { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--line-soft); padding: 1.25rem 1.5rem; }
+    .toc-brand { margin-bottom: 1rem; }
+    .toc nav { flex-direction: row; flex-wrap: wrap; gap: 0.4rem; }
+    .toc a { border-left: none; border: 1px solid var(--line); font-size: 0.8rem; }
+    .toc a.active { border-color: var(--accent); }
+    .toc .sub { display: none; }
+    .content { padding: 2rem 1.35rem 4rem; }
+    .doc-header h1 { font-size: 1.7rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .toc a { transition: none; } }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="toc-brand">PathEx</div>
+    <span class="toc-eyebrow">Guide contents</span>
+    <nav id="toc-nav">
+      <a href="#overview">Overview</a>
+      <a href="#choosing">Choosing a path</a>
+      <a href="#cloud">1. Streamlit Community Cloud</a>
+      <a href="#docker">2. Docker (self-hosted)</a>
+      <a href="#local">3. Local, no Docker</a>
+      <a href="#https">Putting it behind HTTPS</a>
+      <a href="#updating">Updating a deployment</a>
+      <a href="#checklist">Post-deployment checklist</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="doc-header">
+      <span class="eyebrow">Deployment guide</span>
+      <h1>Deploying PathEx</h1>
+      <p class="dek">Two ways to run PathEx: a free public deployment on Streamlit Community Cloud, or a self-hosted Docker container inside your own infrastructure. This walks through both, end to end.</p>
+      <p class="byline">Yonghua Zhuang</p>
+    </header>
+
+    <section id="overview">
+      <h2><span class="num">01</span>Overview</h2>
+      <p>PathEx deploys two ways, depending on who's using it and what data they're touching. If you're only trying the app out or sharing it with collaborators, Streamlit Community Cloud is the fastest path — no server to manage. If you're processing real patient data, self-host with Docker inside your own infrastructure instead of relying on the public demo.</p>
+    </section>
+
+    <section id="choosing" class="wide">
+      <h2><span class="num">02</span>Choosing a path</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th></th><th>Streamlit Community Cloud</th><th>Docker (self-hosted)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Best for</td><td>Public demo, trying the app, sharing with collaborators</td><td>Institutional use, real patient data</td></tr>
+            <tr><td>Cost</td><td>Free</td><td>Your own infrastructure</td></tr>
+            <tr><td>Setup effort</td><td>~5 minutes, no server needed</td><td>You manage a server/host</td></tr>
+            <tr><td>Storage</td><td><strong>Ephemeral</strong> — wiped on redeploy/restart</td><td>Persistent, if you mount volumes</td></tr>
+            <tr><td>API key</td><td>Can use a small shared demo key</td><td>Bring your institution's own key</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lede">See <a href="https://github.com/zhuangyh/pathex-app#data--privacy">Data &amp; privacy</a> in the README for why real patient data belongs on a self-hosted instance rather than the public demo.</p>
+    </section>
+
+    <section id="cloud" class="wide">
+      <h2><span class="num">03</span>Streamlit Community Cloud</h2>
+      <ol class="steps">
+        <li><span class="n">1</span><p>Fork <a href="https://github.com/zhuangyh/pathex-app">the repo</a> (or use it directly if you have push access), so Streamlit Cloud has a repo to build from.</p></li>
+        <li><span class="n">2</span><p>Go to <a href="https://share.streamlit.io">share.streamlit.io</a> and sign in with GitHub.</p></li>
+        <li><span class="n">3</span><p>Click <strong>"Create app"</strong> → <strong>"Deploy a public app from GitHub."</strong></p></li>
+        <li><span class="n">4</span><p>Fill in <strong>Repository</strong> (<code class="inline">&lt;your-username&gt;/pathex-app</code>), <strong>Branch</strong> (<code class="inline">main</code>), and <strong>Main file path</strong> (<code class="inline">app.py</code>).</p></li>
+        <li><span class="n">5</span><p>Before clicking Deploy, open <strong>"Advanced settings"</strong> and paste your secrets in TOML format (see below).</p></li>
+        <li><span class="n">6</span><p>Click <strong>Deploy</strong>. Your app builds and goes live at <code class="inline">https://&lt;app-name&gt;.streamlit.app</code>.</p></li>
+      </ol>
+
+      <div class="code-block">
+        <div class="code-label">secrets (TOML)</div>
+        <pre><code>SHARED_API_KEY = "sk-..."
+SHARED_KEY_MAX_CALLS = "500"
+SHARED_KEY_MODEL = "gpt-4o-mini"
+SHARED_KEY_URL = "https://api.openai.com/v1/chat/completions"</code></pre>
+      </div>
+      <p>These populate as environment variables the same way a local <code class="inline">.env</code> does — no code changes needed. The shared key is optional; omit it and every visitor must bring their own key via <strong>"My own key"</strong> in the sidebar.</p>
+
+      <div class="callout">
+        <span class="label">Updating secrets later</span>
+        <p>Open the app on Streamlit Cloud → <strong>⋮ (three-dot menu)</strong> → <strong>Settings</strong> → <strong>Secrets</strong>.</p>
+      </div>
+
+      <div class="callout caution">
+        <span class="label">Storage caveat</span>
+        <p><code class="inline">storage/</code> (user accounts) and <code class="inline">app_cache/</code> (extraction cache) live on Streamlit Cloud's ephemeral filesystem. They survive while the app is running but are wiped on every redeploy and on periodic container restarts. Fine for a public demo — don't rely on it for long-term account or data persistence.</p>
+      </div>
+    </section>
+
+    <section id="docker" class="wide">
+      <h2><span class="num">04</span>Docker (self-hosted)</h2>
+      <p>Use this for a production or institutional deployment — it keeps report data inside your own infrastructure and gives you persistent storage.</p>
+
+      <h3>Prerequisites</h3>
+      <ul>
+        <li>Docker installed and running (<a href="https://www.docker.com/get-started">docker.com/get-started</a>)</li>
+        <li>Your own LLM API key (OpenAI, Azure OpenAI, Google Gemini, or OpenRouter) — don't reuse the publicly shared demo key for institutional traffic</li>
+      </ul>
+
+      <div class="code-block">
+        <div class="code-label">terminal</div>
+        <pre><code><span class="c"># Clone and configure</span>
+git clone https://github.com/zhuangyh/pathex-app.git
+cd pathex-app
+cp .env.example .env
+<span class="c"># edit .env: SHARED_API_KEY=&lt;your institution's key&gt;, or leave blank
+# and require "My own key"</span>
+
+<span class="c"># Build and run</span>
+docker build -t pathex .
+
+docker run -d \
+  --name pathex \
+  -p 8501:8501 \
+  --env-file .env \
+  -v pathex_storage:/app/storage \
+  -v pathex_cache:/app/app_cache \
+  pathex</code></pre>
+      </div>
+      <p>Open <code class="inline">http://localhost:8501</code> (or your server's hostname/IP) once it's up.</p>
+
+      <ul>
+        <li><code class="inline">-v pathex_storage:/app/storage</code> and <code class="inline">-v pathex_cache:/app/app_cache</code> are named Docker volumes — they persist user accounts and the extraction cache across container restarts, updates, and re-creates. Without them, both reset every time the container restarts, same as the Streamlit Cloud caveat above.</li>
+        <li><code class="inline">--env-file .env</code> passes your secrets in at container start — they're never baked into the image (see <code class="inline">.dockerignore</code>).</li>
+        <li>Check container health: <code class="inline">docker inspect --format='{{.State.Health.Status}}' pathex</code> should report <code class="inline">healthy</code> within about a minute of starting.</li>
+      </ul>
+    </section>
+
+    <section id="local" class="wide">
+      <h2><span class="num">05</span>Local, no Docker</h2>
+      <p>For development, or just trying the app without containers:</p>
+      <div class="code-block">
+        <div class="code-label">terminal</div>
+        <pre><code>git clone https://github.com/zhuangyh/pathex-app.git
+cd pathex-app
+pip install -r requirements.txt
+cp .env.example .env   <span class="c"># optional — fill in a key, or skip and
+                        # use "My own key" in the app</span>
+streamlit run app.py</code></pre>
+      </div>
+    </section>
+
+    <section id="https">
+      <h2><span class="num">06</span>Putting it behind HTTPS</h2>
+      <p>Streamlit's built-in server doesn't do TLS. For a real deployment, put a reverse proxy (nginx, Caddy, or your institution's existing load balancer) in front of the container and terminate HTTPS there, forwarding to port 8501.</p>
+    </section>
+
+    <section id="updating">
+      <h2><span class="num">07</span>Updating a deployment</h2>
+      <div class="code-block">
+        <div class="code-label">terminal</div>
+        <pre><code>git pull
+docker build -t pathex .
+docker stop pathex && docker rm pathex
+docker run -d --name pathex -p 8501:8501 --env-file .env \
+  -v pathex_storage:/app/storage -v pathex_cache:/app/app_cache pathex</code></pre>
+      </div>
+      <p class="lede">The named volumes aren't touched by <code class="inline">docker rm</code>, so accounts and cache survive the update.</p>
+    </section>
+
+    <section id="checklist" class="wide">
+      <h2><span class="num">08</span>Post-deployment checklist</h2>
+      <ul class="checklist">
+        <li>Confirm the PHI pre-pass warning banner appears when uploading a reports file</li>
+        <li>Sign in / create an account and confirm it persists after a restart (if using Docker volumes, or mid-session for Streamlit Cloud)</li>
+        <li>If using a shared key, confirm <code class="inline">SHARED_KEY_MAX_CALLS</code> is set to a value you're comfortable funding</li>
+        <li>Try "My own key" mode to confirm the app works without any shared key configured</li>
+        <li>Read the in-app <strong>Help</strong> tab and <a href="user_guide.html">user guide</a> for feature-level documentation</li>
+      </ul>
+    </section>
+
+    <footer>PathEx — deployment guide. Author: Yonghua Zhuang. See also the <a href="user_guide.html">user guide</a>.</footer>
+  </main>
+</div>
+
+<script>
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('#toc-nav a'));
+    var sections = links.map(function (a) { return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+    if (!('IntersectionObserver' in window) || sections.length === 0) return;
+    var byId = {};
+    links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var link = byId[entry.target.id];
+        if (!link) return;
+        if (entry.isIntersecting) {
+          links.forEach(function (a) { a.classList.remove('active'); });
+          link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function (s) { observer.observe(s); });
+  })();
+</script>
