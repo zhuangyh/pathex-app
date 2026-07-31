@@ -1075,6 +1075,14 @@ def main():
     # Bigger, easier-to-hit pills for the main page-navigation bar (the
     # default segmented_control sizing reads as cramped at this page's
     # information density).
+    #
+    # Background tint: nearly all body text (report text, extracted-field
+    # lists, Help copy) sits directly on this background rather than inside a
+    # bordered card, and Streamlit's own theme (light or dark, user-toggled
+    # via Settings) sets its background-color on the *parent* .stApp element,
+    # not this one -- so this must stay a translucent overlay (rgba, no
+    # opaque background-color) rather than a solid gradient, or it paints
+    # over the dark theme's background and makes text unreadable in it.
     st.markdown("""
         <style>
         button[data-testid^="stBaseButton-segmented_control"] {
@@ -1084,6 +1092,16 @@ def main():
         }
         button[data-testid^="stBaseButton-segmented_control"] p {
             font-size: 1.05rem !important;
+        }
+        [data-testid="stAppViewContainer"] {
+            background-image: linear-gradient(160deg,
+                rgba(90, 59, 148, 0.055) 0%,
+                rgba(192, 87, 122, 0.045) 50%,
+                rgba(90, 59, 148, 0.05) 100%);
+            background-attachment: fixed;
+        }
+        [data-testid="stHeader"] {
+            background: transparent;
         }
         </style>
     """, unsafe_allow_html=True)
