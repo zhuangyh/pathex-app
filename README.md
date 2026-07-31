@@ -38,6 +38,8 @@ streamlit run app.py
 
 Without a shared key configured, each user brings their own API key via the sidebar ("My own key") — nothing is required to just try the app with your own credentials.
 
+For deploying it (Streamlit Community Cloud or self-hosted with Docker), see the [Deployment Guide](DEPLOYMENT.md).
+
 ## Data & privacy
 
 - **Bring de-identified or synthetic reports only.** The PHI pre-pass is a heuristic safety net, not certified de-identification — a clean scan means "no obvious red flags," not a guarantee.
