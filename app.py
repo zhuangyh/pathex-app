@@ -142,8 +142,8 @@ _NO_TEMP_PREFIXES = (
 )
 
 PRESETS = {
-    # ── Prostate (Wölflein et al. 2024) ──────────────────────────────────────
-    "Prostate Cancer — PRAD (Wölflein et al. 2024)": {"fields": [
+    # ── Prostate (Grothey et al. 2025) ───────────────────────────────────────
+    "Prostate Cancer — PRAD (Grothey et al. 2025)": {"fields": [
         {"name": "WHO (ISUP) Grade Group",                  "options": "GG1/GG2/GG3/GG4/GG5/Not mentioned",               "gt_col": "WHO_GG"},
         {"name": "T-Stage (TNM)",                           "options": "pT0/pT2a/pT2b/pT2c/pT3a/pT3b/pT4/Not mentioned",  "gt_col": "pT"},
         {"name": "N-Stage (TNM)",                           "options": "pNx/pN0/pN1/Not mentioned",                         "gt_col": "pN"},
@@ -407,7 +407,7 @@ PRESETS = {
 # TCGA-242 preset or None) — the TCGA-242 variant is picked instead when the
 # filename also contains "tcga".
 FILENAME_PRESET_HINTS = [
-    (["prostate", "prad"],                          "Prostate Cancer — PRAD (Wölflein et al. 2024)", None),
+    (["prostate", "prad"],                          "Prostate Cancer — PRAD (Grothey et al. 2025)", None),
     (["thyroid"],                                   "Thyroid Cancer (Lee et al. 2025)", None),
     (["breast"],                                    "Breast Cancer (CAP/AJCC)", "Breast Cancer — TCGA-242 (CAP/AJCC)"),
     (["colorectal", "colon", "rectal", "rectum"],   "Colorectal Cancer (CAP/AJCC)", "Colorectal Cancer — TCGA-242 (CAP/AJCC)"),
@@ -529,7 +529,7 @@ def _cot(fields):
 
 def _fewshot(fields):
     prad_names = {f["name"] for f in
-                  PRESETS["Prostate Cancer — PRAD (Wölflein et al. 2024)"]["fields"]}
+                  PRESETS["Prostate Cancer — PRAD (Grothey et al. 2025)"]["fields"]}
     current_names = {f["name"] for f in fields}
 
     if current_names == prad_names:
