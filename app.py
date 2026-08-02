@@ -1,4 +1,12 @@
-"""Pathology Structured Extractor — Streamlit edition (multi-user)"""
+"""
+PathEx — Pathology Structured Extractor (Streamlit edition, multi-user)
+
+Authors: Yonghua Zhuang, Vida Alami, Dexiang Gao
+License: MIT (see LICENSE)
+Citation: Zhuang Y, Alami V, Gao D. PathEx: A Web-Based Multi-Strategy Platform for
+          Large Language Model-Driven Structured Extraction from Pathology Reports.
+          (manuscript in preparation)
+"""
 
 from __future__ import annotations
 
