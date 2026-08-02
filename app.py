@@ -539,12 +539,20 @@ def _fewshot(fields):
             f"Output:\n{json.dumps(ex['output'], indent=2)}"
         )
     else:
-        def _first(options):
-            return options.split("/")[0].strip()
-        dynamic_output = {f["name"]: _first(f["options"]) for f in fields}
+        # A field's first listed option is only a usable example value for
+        # categorical fields (e.g. "present/absent/Not mentioned" -> "present").
+        # For Number/Integer/String fields, the first option is the literal
+        # placeholder word itself (e.g. "Number/Not mentioned" -> "Number"),
+        # which would show the model a fake example that contradicts the
+        # prompt's own instruction to answer with a real numeric value.
+        PLACEHOLDER_EXAMPLES = {"Number": "12.5", "Integer": "3", "String": "Not mentioned"}
+        def _example_value(options):
+            first = options.split("/")[0].strip()
+            return PLACEHOLDER_EXAMPLES.get(first, first)
+        dynamic_output = {f["name"]: _example_value(f["options"]) for f in fields}
         example_block = (
-            "Example output format (showing the first valid option for each field — "
-            "replace with the value actually found in the report):\n"
+            "Example output format (illustrative values only — replace with "
+            "the value actually found in the report):\n"
             + json.dumps(dynamic_output, indent=2)
         )
 
