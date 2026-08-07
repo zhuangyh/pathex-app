@@ -959,7 +959,8 @@ def init_state():
         "ie_rules_version": 0,  # bumped when nl_cohort programmatically adds rules,
                                 # so the data_editor re-seeds instead of showing stale state
         "nl_cohort_proposal": None,  # last NL-to-rules translation, awaiting review
-        "case_explanations": {},  # case_id -> {field: LLM reasoning text}, Review tab
+        "case_explanations": {},  # case_id -> {field: {"text","quote","span"}}, Review tab
+        "review_highlight": None,  # (case_id, field) currently highlighted in the report pane
         "_save_msg": "",   # persists last save confirmation across reruns
         "_save_count": 0,  # incremented on save to reset the data_editor key
         "_gt_mapping_seen": False,  # forces the GT-mapping expander's initial
@@ -1078,6 +1079,113 @@ def _save_user_session(username: str, ss):
 def _load_user_guide_html() -> str:
     path = Path(__file__).parent / "user_guide.html"
     return path.read_text() if path.exists() else ""
+
+def _render_report_pane(report_text: str, active_span: tuple[int, int] | None,
+                         key_prefix: str, height: str = "78vh") -> None:
+    """
+    Read-only report pane for the Review tab: a search box (all matches
+    shown, current match emphasized, ◀▶ to step through) plus the div that
+    displays report_text. Search and the field-level 📍 highlight
+    (active_span, from evidence_reasoning's located quote) don't overlay --
+    a non-empty search takes over the pane; active_span shows only when
+    the search box is empty. key_prefix must be unique per pane instance
+    rendered in the same script run (the inline pane and the "Expand"
+    dialog each need their own widget keys, since Streamlit can't have two
+    widgets sharing one key on screen at once).
+    """
+    search_key = f"rsearch_{key_prefix}"
+    idx_key    = f"rsearch_idx_{key_prefix}"
+    lastq_key  = f"rsearch_lastq_{key_prefix}"
+
+    sc1, sc2, sc3, sc4 = st.columns([6, 1, 1, 2])
+    with sc1:
+        query = st.text_input(
+            "Find in report", key=search_key, placeholder="🔍 find in report…",
+            label_visibility="collapsed",
+        ).strip()
+
+    if st.session_state.get(lastq_key) != query:
+        st.session_state[idx_key] = 0
+        st.session_state[lastq_key] = query
+
+    matches = ([(m.start(), m.end()) for m in re.finditer(re.escape(query), report_text, re.IGNORECASE)]
+               if query else [])
+    n_matches = len(matches)
+    cur_idx   = st.session_state.get(idx_key, 0) % n_matches if n_matches else 0
+
+    with sc2:
+        if st.button("◀", key=f"{search_key}_prev", disabled=n_matches == 0,
+                      use_container_width=True, help="Previous match"):
+            st.session_state[idx_key] = (cur_idx - 1) % n_matches
+            st.rerun()
+    with sc3:
+        if st.button("▶", key=f"{search_key}_next", disabled=n_matches == 0,
+                      use_container_width=True, help="Next match"):
+            st.session_state[idx_key] = (cur_idx + 1) % n_matches
+            st.rerun()
+    with sc4:
+        if query:
+            st.caption(f"{cur_idx + 1} / {n_matches}" if n_matches else "no matches")
+
+    scroll_target = None
+    if matches:
+        chunks, pos = [], 0
+        for i, (start, end) in enumerate(matches):
+            current = (i == cur_idx)
+            chunks.append(html.escape(report_text[pos:start]))
+            style = "background:#ff9d3b; color:#1a1a1a;" if current else "background:#ffe58a; color:#1a1a1a;"
+            id_attr = ' id="search-current"' if current else ""
+            chunks.append(
+                f'<mark{id_attr} style="{style} padding:0 2px; border-radius:3px; '
+                f'scroll-margin:2rem;">{html.escape(report_text[start:end])}</mark>'
+            )
+            pos = end
+        chunks.append(html.escape(report_text[pos:]))
+        body_html = "".join(chunks)
+        scroll_target = "search-current"
+    elif active_span:
+        start, end = active_span
+        body_html = (
+            html.escape(report_text[:start])
+            + '<mark id="hl-target" style="background:#ffe58a; color:#1a1a1a; '
+              'padding:0 2px; border-radius:3px; scroll-margin:2rem;">'
+            + html.escape(report_text[start:end]) + "</mark>"
+            + html.escape(report_text[end:])
+        )
+        scroll_target = "hl-target"
+    else:
+        body_html = html.escape(report_text)
+
+    # A disabled st.text_area renders with Streamlit's greyed-out "inactive"
+    # styling, which hurts readability for something meant to be read
+    # closely (not edited). A plain styled div keeps full-contrast,
+    # theme-matched text while staying visually read-only (bordered,
+    # scrollable, no input caret).
+    st.markdown(
+        f"""<div style="
+                height: {height}; overflow-y: auto; padding: 0.75rem 1rem;
+                border: 1px solid rgba(128,128,128,0.4); border-radius: 0.5rem;
+                background-color: var(--secondary-background-color);
+                color: var(--text-color);
+                white-space: pre-wrap; word-wrap: break-word;
+                font-family: inherit; font-size: 0.9rem; line-height: 1.5;
+            ">{body_html}</div>""",
+        unsafe_allow_html=True,
+    )
+    if scroll_target:
+        # st.markdown's unsafe_allow_html renders straight into the main
+        # app DOM (not a nested frame), so the mark above is a sibling of
+        # whatever this component.html iframe's parent document is --
+        # window.parent.document reaches it.
+        components.html(
+            f"""<script>
+            setTimeout(function () {{
+                var el = window.parent.document.getElementById('{scroll_target}');
+                if (el) {{ el.scrollIntoView({{block: 'center', behavior: 'smooth'}}); }}
+            }}, 50);
+            </script>""",
+            height=0,
+        )
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 
@@ -2305,29 +2413,37 @@ def main():
             r_col, f_col = st.columns([5, 7], gap="large")
 
             with r_col:
-                st.markdown("**Original report**")
+                rh1, rh2 = st.columns([4, 1])
+                with rh1:
+                    st.markdown("**Original report**")
                 if ss.report_df is not None and ss.id_col and ss.text_col:
                     matches = ss.report_df[ss.report_df[ss.id_col].astype(str) == sel]
                     parts   = [clean_text(str(t)) for t in matches[ss.text_col]]
                     report_text = "\n\n─── sub-report ───\n\n".join(parts) if parts else "(not found)"
                 else:
                     report_text = "(report file not loaded)"
-                # A disabled st.text_area renders with Streamlit's greyed-out
-                # "inactive" styling, which hurts readability for something
-                # meant to be read closely (not edited). A plain styled div
-                # keeps full-contrast, theme-matched text while staying
-                # visually read-only (bordered, scrollable, no input caret).
-                st.markdown(
-                    f"""<div style="
-                            height: 78vh; overflow-y: auto; padding: 0.75rem 1rem;
-                            border: 1px solid rgba(128,128,128,0.4); border-radius: 0.5rem;
-                            background-color: var(--secondary-background-color);
-                            color: var(--text-color);
-                            white-space: pre-wrap; word-wrap: break-word;
-                            font-family: inherit; font-size: 0.9rem; line-height: 1.5;
-                        ">{html.escape(report_text)}</div>""",
-                    unsafe_allow_html=True,
-                )
+                # If a field's "🧠 Explain this case" quote was located in
+                # report_text (see evidence_reasoning.find_quote_span), that
+                # span is highlighted by default (search, if used, takes over
+                # instead -- see _render_report_pane).
+                active_span = None
+                if ss.review_highlight and ss.review_highlight[0] == sel:
+                    hl_exp = ss.case_explanations.get(sel, {}).get(ss.review_highlight[1])
+                    if hl_exp:
+                        active_span = hl_exp.get("span")
+
+                @st.dialog("Original report", width="large")
+                def _expanded_report_dialog():
+                    st.caption(f"Case {sel}")
+                    _render_report_pane(report_text, active_span,
+                                         key_prefix=f"{sel}_expand", height="72vh")
+
+                with rh2:
+                    if st.button("⛶ Expand", key=f"expand_report_{sel}",
+                                  use_container_width=True):
+                        _expanded_report_dialog()
+
+                _render_report_pane(report_text, active_span, key_prefix=f"{sel}_main")
 
             with f_col:
                 st.markdown("**Extracted fields — type in Corrected to override**")
@@ -2359,7 +2475,8 @@ def main():
                 with exp_col2:
                     st.caption("One call asks the model what in the report supports each "
                                "value. Its own explanation, generated after the fact — a "
-                               "starting point for review, not proof.")
+                               "starting point for review, not proof. Click 📍 next to a "
+                               "field to highlight its supporting text in the report.")
                 if explain_clicked:
                     if ss.key_mode == "Shared key" and 1 > SHARED_MAX - ss.session_calls:
                         st.error("Shared-key session quota reached — switch to your own key.")
@@ -2371,6 +2488,7 @@ def main():
                         if result["error"] is None:
                             ss.session_calls += 1
                             ss.case_explanations[sel] = result["explanations"]
+                            ss.review_highlight = None  # spans may have shifted/changed
                         else:
                             st.error(f"Explanation failed: {result['error']}")
 
@@ -2400,8 +2518,22 @@ def main():
                         )
                     explanation = ss.case_explanations.get(sel, {}).get(fname)
                     if explanation:
-                        unsupported = explanation.strip().upper().startswith("UNSUPPORTED")
-                        st.caption(f"{'⚠️' if unsupported else '🧠'} {explanation}")
+                        exp_text    = explanation["text"]
+                        unsupported = exp_text.strip().upper().startswith("UNSUPPORTED")
+                        cap_col, loc_col = st.columns([9, 1])
+                        with cap_col:
+                            st.caption(f"{'⚠️' if unsupported else '🧠'} {exp_text}")
+                        with loc_col:
+                            if explanation.get("span"):
+                                is_active = ss.review_highlight == (sel, fname)
+                                if st.button(
+                                    "📍" if not is_active else "✖️",
+                                    key=f"locate_{sel}_{fname}",
+                                    help="Un-highlight" if is_active
+                                         else "Highlight the supporting text in the report",
+                                ):
+                                    ss.review_highlight = None if is_active else (sel, fname)
+                                    st.rerun()
 
                 st.divider()
                 b1, b2 = st.columns(2)
@@ -2768,7 +2900,10 @@ After you upload a reports file, a local regex scan checks for common identifier
 After extraction, Run & Results checks the extracted fields for internal contradictions: values outside a field's own defined options (e.g. a stray `pMX` where only `pM0/pM1a/pM1b/pM1c` are valid), more positive lymph nodes than nodes examined, or N-Stage `N0` paired with a nonzero positive-node count. It's a local check on already-extracted values, not another LLM call, and it never modifies anything — just flags cases worth a closer look in Review.
 
 ### Explain this case
-In the Review tab, **🧠 Explain this case** asks the model — one call for the whole case — what in the report supports each extracted value, and to say plainly when it's a direct quote versus an inference, unit conversion, or interpretation. A field flagged ⚠️ **UNSUPPORTED** means the model itself doesn't think the report backs up that value — worth a close look. This is the model's own after-the-fact explanation, not proof: treat it as a starting point for review.
+In the Review tab, **🧠 Explain this case** asks the model — one call for the whole case — what in the report supports each extracted value, and to say plainly when it's a direct quote versus an inference, unit conversion, or interpretation. A field flagged ⚠️ **UNSUPPORTED** means the model itself doesn't think the report backs up that value — worth a close look. This is the model's own after-the-fact explanation, not proof: treat it as a starting point for review. When the model's supporting quote can be found verbatim (or near-verbatim) in the report, a **📍** button appears next to that field — click it to highlight the matching span in the report pane on the left, and jump to it if it's out of view. No 📍 button means no matching span was found (often the case for UNSUPPORTED fields, or values reached by inference rather than a quotable phrase).
+
+### Searching and expanding the report
+Above the report pane in the Review tab, the **🔍 find in report** box highlights every match in the text and steps between them with **◀ ▶**; searching this way takes over from the 📍 highlight until the search box is cleared. **⛶ Expand** opens the same report — with its own search box — in a larger pop-up window, useful for long reports where the side-by-side pane feels cramped.
 
 ### Natural-language cohort builder
 In the Cohort tab, the **"Describe your cohort in plain English"** expander turns a sentence like *"liver cases with vascular invasion and R1 margins"* into Inclusion/Exclusion rules — one LLM call, translated using your actual extracted fields and their allowed values. It always shows a preview table first; nothing is added to the rules below until you click **Add these rules**.
