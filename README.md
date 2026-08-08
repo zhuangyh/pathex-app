@@ -10,8 +10,8 @@
 ![Compare tab screenshots — accuracy heatmaps comparing four prompting strategies (A) and three LLM providers (B) across extracted fields](docs_figure2.png)
 *Compare tab: per-field accuracy heatmaps across prompting strategies (A) and across LLM providers (B).*
 
-![PathEx Review tab, showing an extracted case with the on-demand explanation feature](docs_screenshot.png)
-*Review tab: case-level correction plus "Explain this case," an on-demand LLM call that states whether each value is a direct quote, a paraphrase, or an inference.*
+![PathEx Review tab — full view (A), the on-demand explanation feature (B), and clicking a field's locate button to highlight its supporting quote directly in the report (C)](docs_screenshot.png)
+*Review tab: case-level correction plus "Explain this case," an on-demand LLM call that states whether each value is a direct quote, a paraphrase, or an inference (A, B). When the model's quote can be located in the report text, a locate button highlights that exact span and scrolls to it — the pane also has free-text search and an expandable full-window view (C).*
 
 ## What it does
 
@@ -23,7 +23,7 @@ Surgical pathology reports contain rich structured data (tumor size, grade, stag
 - **Eight prompting strategies** — zero-shot, chain-of-thought, chain-of-verification, and persona variants — so you can measure what actually improves accuracy on your data
 - **Built-in field presets** for prostate, breast, colorectal, esophagus, liver, stomach, lung, thyroid, and tongue/oral cancers, plus custom fields for any cancer type
 - **Accuracy evaluation** against your own ground-truth spreadsheet, with per-field and per-strategy accuracy heatmaps
-- **Review tab** for case-by-case manual correction, with an on-demand **"Explain this case"** feature — a single LLM call that states, for every extracted field, whether the value is a direct quote, a paraphrase/unit conversion, or an inference the report doesn't explicitly state
+- **Review tab** for case-by-case manual correction, with an on-demand **"Explain this case"** feature — a single LLM call that states, for every extracted field, whether the value is a direct quote, a paraphrase/unit conversion, or an inference the report doesn't explicitly state. When a field's quote can be located in the report text, a locate button highlights that exact span so you can verify the evidence directly rather than trust the explanation alone; the report pane also has free-text search and an expandable full-window view
 - **PHI pre-pass** — a local regex scan that flags common identifier patterns (SSNs, phone numbers, emails, names, DOBs, addresses) in uploaded files before extraction runs
 - **Consistency checker** — a local, deterministic check that flags internally contradictory extracted values (e.g. more positive lymph nodes than nodes examined)
 - **Natural-language cohort builder** — describe inclusion/exclusion criteria in plain English and get back structured rules built from your own extracted fields and their vocabularies
