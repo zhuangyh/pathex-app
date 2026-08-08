@@ -105,6 +105,26 @@ streamlit run app.py
 
 ---
 
+## Setting up accounts
+
+### Creating the first admin account
+
+`users.yaml` starts empty on a fresh deployment, and the very first account ever registered is promoted to admin automatically. Just open the app and use **Create account** — no file editing needed. Every account registered after that first one gets the normal `user` role, so this only matters once, right after deploying.
+
+To create an *additional* admin later (rather than the first one), an existing admin has to do it by hand — there's no in-app "promote to admin" control: open `users.yaml` on the server (inside the Docker volume for a self-hosted deploy, or the working directory for a local/Streamlit Cloud install) and change that account's `role: user` to `role: admin`, then have them sign out and back in.
+
+### Resetting a user's password
+
+Once you have at least one admin account, resets don't require touching any files:
+
+1. Sign in as an admin → expand **⚙️ User management** in the sidebar.
+2. Under **Add / update user**, enter the existing username and a new password (display name and role can be left as-is), then click **Save user**. The same form handles both creating new accounts and updating existing ones — an existing username just gets overwritten.
+3. Tell the user their new password out of band — there's no email or notification system — and note that this invalidates any "remember my API key" secret they had saved, since that's encrypted with a key derived from their old password.
+
+If you ever lose access to the *only* admin account, there's no in-app recovery. You'd need direct server/file access to hand-edit `users.yaml` with a new bcrypt hash for that account — the same fallback described above for creating the first admin.
+
+---
+
 ## Post-deployment checklist
 
 - [ ] Confirm the PHI pre-pass warning banner appears when uploading a reports file

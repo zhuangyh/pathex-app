@@ -227,6 +227,7 @@
       <a href="#local">3. Local, no Docker</a>
       <a href="#https">Putting it behind HTTPS</a>
       <a href="#updating">Updating a deployment</a>
+      <a href="#accounts">Setting up accounts</a>
       <a href="#checklist">Post-deployment checklist</a>
     </nav>
   </aside>
@@ -365,8 +366,31 @@ docker run -d --name pathex -p 8501:8501 --env-file .env \
       <p class="lede">The named volumes aren't touched by <code class="inline">docker rm</code>, so accounts and cache survive the update.</p>
     </section>
 
+    <section id="accounts" class="wide">
+      <h2><span class="num">08</span>Setting up accounts</h2>
+
+      <h3>Creating the first admin account</h3>
+      <p><code class="inline">users.yaml</code> starts empty on a fresh deployment, and the very first account ever registered is promoted to admin automatically. Just open the app and use <strong>Create account</strong> — no file editing needed. Every account registered after that first one gets the normal <code class="inline">user</code> role, so this only matters once, right after deploying.</p>
+      <div class="callout">
+        <span class="label">Adding another admin later</span>
+        <p>There's no in-app "promote to admin" control for accounts after the first — an existing admin has to open <code class="inline">users.yaml</code> on the server (inside the Docker volume for a self-hosted deploy, or the working directory for a local/Streamlit Cloud install), change that account's <code class="inline">role: user</code> to <code class="inline">role: admin</code>, and have them sign out and back in.</p>
+      </div>
+
+      <h3>Resetting a user's password</h3>
+      <p>Once you have at least one admin account, resets don't require touching any files:</p>
+      <ol class="steps">
+        <li><span class="n">1</span><p>Sign in as an admin → expand <strong>⚙️ User management</strong> in the sidebar.</p></li>
+        <li><span class="n">2</span><p>Under <strong>Add / update user</strong>, enter the existing username and a new password (display name and role can be left as-is), then click <strong>Save user</strong>. The same form handles both creating new accounts and updating existing ones — an existing username just gets overwritten.</p></li>
+        <li><span class="n">3</span><p>Tell the user their new password out of band — there's no email or notification system — and note that this invalidates any "remember my API key" secret they had saved, since that's encrypted with a key derived from their old password.</p></li>
+      </ol>
+      <div class="callout caution">
+        <span class="label">Lost the only admin account?</span>
+        <p>There's no in-app recovery. You'd need direct server/file access to hand-edit <code class="inline">users.yaml</code> with a new bcrypt hash for that account — the same fallback described above for creating the first admin.</p>
+      </div>
+    </section>
+
     <section id="checklist" class="wide">
-      <h2><span class="num">08</span>Post-deployment checklist</h2>
+      <h2><span class="num">09</span>Post-deployment checklist</h2>
       <ul class="checklist">
         <li>Confirm the PHI pre-pass warning banner appears when uploading a reports file</li>
         <li>Sign in / create an account and confirm it persists after a restart (if using Docker volumes, or mid-session for Streamlit Cloud)</li>

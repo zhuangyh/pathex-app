@@ -8,6 +8,9 @@ Users are stored in users.yaml:
       role: user          # or 'admin'
 
 Passwords are bcrypt-hashed. Admins can add/reset users via the in-app panel.
+The first account ever registered (i.e. users.yaml starts empty) is promoted
+to admin automatically, so a fresh deployment doesn't need any file editing
+to get its first admin -- see _do_register().
 """
 
 import base64
@@ -173,11 +176,18 @@ def _do_register(username: str, display_name: str, password: str, confirm: str):
     if username in users:
         st.error(f"Username '{username}' is already taken.")
         return
+    # Bootstrap: a fresh deployment ships no users.yaml at all, and there's
+    # otherwise no way to reach the admin panel to create the first admin
+    # (self-registration is normally locked to role "user"). Promoting
+    # whoever registers first only fires when the user file is genuinely
+    # empty, so it's a one-time bootstrap moment, not a standing hole --
+    # anyone registering after account #1 still gets "user" as usual.
+    role = "admin" if not users else "user"
     salt = os.urandom(16)
     users[username] = {
         "name":     display_name or username,
         "password": hash_password(password),
-        "role":     "user",
+        "role":     role,
         "cred_salt": base64.b64encode(salt).decode(),
     }
     _save_users(users)
@@ -185,7 +195,7 @@ def _do_register(username: str, display_name: str, password: str, confirm: str):
     st.session_state.authenticated = True
     st.session_state.username      = username
     st.session_state.display_name  = display_name or username
-    st.session_state.role          = "user"
+    st.session_state.role          = role
     st.session_state._cred_key     = _derive_key(password, salt)
     st.rerun()
 
