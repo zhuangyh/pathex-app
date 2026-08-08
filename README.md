@@ -10,6 +10,9 @@
 ![Compare tab screenshots — accuracy heatmaps comparing four prompting strategies (A) and three LLM providers (B) across extracted fields](docs_figure2.png)
 *Compare tab: per-field accuracy heatmaps across prompting strategies (A) and across LLM providers (B).*
 
+![Review-assistance process diagram — an extracted field's value goes through Explain this case, which returns an explanation and a candidate quote; if that quote is found verbatim in the report a locate button highlights it, otherwise the field is flagged for closer manual reading](docs_figure3.png)
+*Review-assistance process: "Explain this case" returns an explanation and a candidate quote for each field. When that quote can be located in the report text, a locate button highlights the exact span; when it can't (typical for UNSUPPORTED fields or values reached by inference), no button is shown and the field is left for closer manual review.*
+
 ![PathEx Review tab — full view (A), the on-demand explanation feature (B), and clicking a field's locate button to highlight its supporting quote directly in the report (C)](docs_screenshot.png)
 *Review tab: case-level correction plus "Explain this case," an on-demand LLM call that states whether each value is a direct quote, a paraphrase, or an inference (A, B). When the model's quote can be located in the report text, a locate button highlights that exact span and scrolls to it — the pane also has free-text search and an expandable full-window view (C).*
 
