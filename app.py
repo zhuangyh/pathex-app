@@ -837,6 +837,68 @@ def compute_accuracy(results_df, gt_df, fields, gt_id_col, gt_col_map):
         rows.append({"Field": fname, "N": n, "Accuracy (%)": acc})
     return pd.DataFrame(rows) if rows else None
 
+def compute_classification_metrics(results_df, gt_df, fields, gt_id_col, gt_col_map, positive_class):
+    """For fields with a user-configured positive class, compute sensitivity,
+    specificity, PPV, and NPV against ground truth.
+
+    `positive_class` maps field name -> either a list/set of option strings
+    (categorical positive class, e.g. {"HER2 Status": ["Positive"]}) or the
+    literal string ">0" for numeric fields, treating any value greater than
+    zero as positive (e.g. a lymph-node-count field where >0 means involved).
+    Fields absent from `positive_class` are skipped entirely.
+    """
+    if not positive_class:
+        return {}
+    gt = gt_df.rename(columns={gt_id_col: "Case_ID"})
+    gt_rename = {c: c + "__gt" for c in gt.columns if c != "Case_ID"}
+    gt = gt.rename(columns=gt_rename)
+    merged = results_df.merge(gt, on="Case_ID")
+
+    out = {}
+    for f in fields:
+        fname = f["name"]
+        if fname not in positive_class:
+            continue
+        gt_col_orig  = gt_col_map.get(fname, "")
+        gt_norm_rule = f.get("gt_norm", "")
+        if not gt_col_orig:
+            continue
+        gt_col_merged = gt_col_orig + "__gt"
+        if fname not in merged.columns or gt_col_merged not in merged.columns:
+            continue
+        pred  = merged[fname].fillna("not mentioned").astype(str).str.lower().str.strip()
+        gold  = merged[gt_col_merged].apply(lambda v: norm_gt(v, gt_norm_rule))
+        valid = ~gold.isin(["9", "na", ""])
+        pred, gold = pred[valid], gold[valid]
+        if len(pred) == 0:
+            continue
+
+        spec = positive_class[fname]
+        if spec == ">0":
+            pred_pos = pd.to_numeric(pred, errors="coerce").fillna(0) > 0
+            gold_pos = pd.to_numeric(gold, errors="coerce").fillna(0) > 0
+        else:
+            pos_vals = {str(v).lower().strip() for v in spec}
+            pred_pos = pred.isin(pos_vals)
+            gold_pos = gold.isin(pos_vals)
+
+        tp = int((pred_pos & gold_pos).sum())
+        fn = int((~pred_pos & gold_pos).sum())
+        fp = int((pred_pos & ~gold_pos).sum())
+        tn = int((~pred_pos & ~gold_pos).sum())
+
+        sens = round(100 * tp / (tp + fn), 1) if (tp + fn) > 0 else None
+        spc  = round(100 * tn / (tn + fp), 1) if (tn + fp) > 0 else None
+        ppv  = round(100 * tp / (tp + fp), 1) if (tp + fp) > 0 else None
+        npv  = round(100 * tn / (tn + fn), 1) if (tn + fn) > 0 else None
+
+        out[fname] = {
+            "Sensitivity (%)": sens, "Specificity (%)": spc,
+            "PPV (%)": ppv, "NPV (%)": npv,
+            "TP": tp, "FP": fp, "TN": tn, "FN": fn,
+        }
+    return out
+
 def apply_corrections(results_df, corrections):
     """Return a copy of results_df with manual corrections applied."""
     if results_df is None:
@@ -952,6 +1014,7 @@ def init_state():
         # data
         "report_df": None, "gt_df": None,
         "results_df": None, "corrections": {}, "compare_df": None,
+        "positive_class": {},  # field name -> [positive option(s)] or ">0", for sens/spec/PPV/NPV
         "cohort_df": None,
         "case_cond":  {"field": "", "op": "==", "value": ""},
         "ctrl_cond":  {"field": "", "op": "==", "value": ""},
@@ -1986,6 +2049,50 @@ def main():
                             m1.metric("Global accuracy", f"{global_acc}%")
                             m2.metric("Cases evaluated", len(ss.results_df))
                             m3.metric("Fields evaluated", len(acc_df))
+
+                            with st.expander("🎯 Classification metrics (sensitivity / specificity / PPV / NPV)"):
+                                st.caption(
+                                    "Pick a positive class for any field below to add its "
+                                    "sensitivity, specificity, PPV, and NPV to the table. "
+                                    "Leave a field unset to skip it — these metrics only "
+                                    "apply to fields with a clear positive/negative meaning."
+                                )
+                                eval_fields = [f for f in ss.fields if f["name"] in set(acc_df["Field"])]
+                                for f in eval_fields:
+                                    fname = f["name"]
+                                    opts = [o.strip() for o in f.get("options", "").split("/") if o.strip()]
+                                    is_numeric = any(o.lower() in ("integer", "number", "numeric") for o in opts)
+                                    if is_numeric:
+                                        checked = st.checkbox(
+                                            f"{fname}: value > 0 = positive",
+                                            value=(ss.positive_class.get(fname) == ">0"),
+                                            key=f"posclass_{fname}",
+                                        )
+                                        if checked:
+                                            ss.positive_class[fname] = ">0"
+                                        else:
+                                            ss.positive_class.pop(fname, None)
+                                    else:
+                                        cat_opts = [o for o in opts if o.lower() != "not mentioned"]
+                                        current = ss.positive_class.get(fname, [])
+                                        current = [v for v in current if v in cat_opts]
+                                        sel = st.multiselect(
+                                            f"{fname}: positive value(s)",
+                                            cat_opts, default=current, key=f"posclass_{fname}",
+                                        )
+                                        if sel:
+                                            ss.positive_class[fname] = sel
+                                        else:
+                                            ss.positive_class.pop(fname, None)
+
+                            cls_metrics = compute_classification_metrics(
+                                ss.results_df, ss.gt_df, ss.fields,
+                                ss.gt_id_col, ss.gt_col_map, ss.positive_class,
+                            )
+                            if cls_metrics:
+                                for col in ("Sensitivity (%)", "Specificity (%)", "PPV (%)", "NPV (%)"):
+                                    acc_df[col] = acc_df["Field"].map(
+                                        lambda fn: cls_metrics.get(fn, {}).get(col))
 
                             # Color-coded per-field bar
                             fig = px.bar(
