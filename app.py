@@ -1141,7 +1141,7 @@ def _save_user_session(username: str, ss):
 @st.cache_data
 def _load_user_guide_html() -> str:
     path = Path(__file__).parent / "user_guide.html"
-    return path.read_text() if path.exists() else ""
+    return path.read_text(encoding="utf-8") if path.exists() else ""
 
 def _render_report_pane(report_text: str, active_span: tuple[int, int] | None,
                          key_prefix: str, height: str = "78vh") -> None:
@@ -3083,7 +3083,7 @@ Works with any OpenAI-format endpoint:
               </div>
               <script>
                 document.getElementById('open-guide-btn').addEventListener('click', function() {{
-                  const blob = new Blob([{guide_json}], {{type: 'text/html'}});
+                  const blob = new Blob([{guide_json}], {{type: 'text/html;charset=utf-8'}});
                   window.open(URL.createObjectURL(blob), '_blank');
                 }});
               </script>
