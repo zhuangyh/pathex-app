@@ -1,9 +1,9 @@
 """
 PathEx — Pathology Structured Extractor (Streamlit edition, multi-user)
 
-Authors: Yonghua Zhuang, Vida Alami, Dexiang Gao
+Authors: Yonghua Zhuang, Vida Alami, William J. Feser, Dexiang Gao
 License: MIT (see LICENSE)
-Citation: Zhuang Y, Alami V, Gao D. PathEx: A Web-Based Multi-Strategy Platform for
+Citation: Zhuang Y, Alami V, Feser WJ, Gao D. PathEx: A Web-Based Multi-Strategy Platform for
           Large Language Model-Driven Structured Extraction from Pathology Reports.
           (manuscript in preparation)
 """
@@ -3041,7 +3041,7 @@ Works with any OpenAI-format endpoint:
         st.markdown("### Citing PathEx")
         st.markdown("If PathEx contributes to your research, please cite the manuscript describing it:")
         st.code(
-            "Zhuang Y, Alami V, Gao D. PathEx: A Web-Based Multi-Strategy Platform for\n"
+            "Zhuang Y, Alami V, Feser WJ, Gao D. PathEx: A Web-Based Multi-Strategy Platform for\n"
             "Large Language Model–Driven Structured Extraction from Pathology Reports.\n"
             "Manuscript in preparation.",
             language=None,
