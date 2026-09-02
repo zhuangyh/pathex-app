@@ -73,6 +73,7 @@ Open `http://localhost:8501` (or your server's hostname/IP) once it's up.
 - `-v pathex_storage:/app/storage` and `-v pathex_cache:/app/app_cache` are named Docker volumes — they persist user accounts and the extraction cache across container restarts, updates, and `docker run` re-creates. Without them, both reset every time the container restarts (same as the Streamlit Cloud caveat above).
 - `--env-file .env` passes your secrets in at container start; they're never baked into the image (see `.dockerignore`).
 - Check container health: `docker inspect --format='{{.State.Health.Status}}' pathex` should report `healthy` within about a minute of starting.
+- **Apple Silicon (M-series Mac) caveat**: building natively for `arm64` produces a container that starts but crashes (`exit code 132`, SIGILL) once the app actually runs — a numpy/pandas SIMD-dispatch issue under Docker Desktop's virtualization, not an app bug. Add `--platform linux/amd64` to both the `build` and `run` commands to build and run under emulation instead; this isn't needed on a native x86_64/amd64 Linux server, which is the typical production target.
 
 ### Putting it behind HTTPS
 
