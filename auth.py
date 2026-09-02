@@ -24,8 +24,8 @@ import streamlit as st
 import yaml
 from cryptography.fernet import Fernet
 
-USERS_FILE  = Path(__file__).parent / "users.yaml"
 STORAGE_DIR = Path(__file__).parent / "storage"
+USERS_FILE  = STORAGE_DIR / "users.yaml"
 
 
 # ── User file helpers ──────────────────────────────────────────────────────────
@@ -38,6 +38,7 @@ def _load_users() -> dict:
     return data.get("users", {})
 
 def _save_users(users: dict):
+    STORAGE_DIR.mkdir(parents=True, exist_ok=True)
     USERS_FILE.write_text(yaml.dump({"users": users}, default_flow_style=False))
 
 def hash_password(plain: str) -> str:
