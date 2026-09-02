@@ -4,8 +4,8 @@
 
 🔗 **Try it live:** [pathex-app.streamlit.app](https://pathex-app.streamlit.app/)
 
-![PathEx analysis flow — pathology reports and ground truth go in, LLM structured extraction runs behind a choice of prompting strategy, and results feed accuracy evaluation and cohort generation](docs_figure1.png)
-*PathEx analysis flow: reports and ground truth in, LLM extraction with your choice of strategy, results out as accuracy metrics and a labeled cohort export.*
+![PathEx analysis flow — pathology reports and ground truth go in, LLM structured extraction runs behind a choice of prompting strategy, extracted fields go through Review, and results feed accuracy evaluation and cohort generation](docs_figure1.png)
+*PathEx analysis flow: reports and ground truth in, LLM extraction with your choice of strategy, extracted fields go through Review for inline correction and evidence checking, then out as accuracy metrics (including sensitivity, specificity, PPV, and NPV) and a labeled cohort export.*
 
 ![Compare tab screenshots — accuracy heatmaps comparing four prompting strategies (A) and three LLM providers (B) across extracted fields](docs_figure2.png)
 *Compare tab: per-field accuracy heatmaps across prompting strategies (A) and across LLM providers (B).*
