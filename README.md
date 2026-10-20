@@ -4,11 +4,11 @@
 
 🔗 **Try it live:** [pathex-app.streamlit.app](https://pathex-app.streamlit.app/)
 
-![PathEx analysis flow — pathology reports and reference standard go in, LLM structured extraction runs behind a choice of prompting strategy, extracted fields go through Review, and results feed accuracy evaluation and cohort generation](docs_figure1.png)
-*PathEx analysis flow: reports and reference standard in, LLM extraction with your choice of strategy, extracted fields go through Review for inline correction and evidence checking, then out as accuracy metrics (including sensitivity, specificity, PPV, and NPV) and a labeled cohort export.*
+![PathEx analysis flow — pathology reports go through LLM structured extraction (provider, prompting strategy, field preset); extracted fields feed Compare, Accuracy Evaluation against optional reference-standard annotations, and Review, with feedback loops to prompt engineering, and finalized fields feed Cohort export](docs_figure1.png)
+*PathEx analysis flow: reports go through LLM extraction with your choice of provider, prompting strategy, and field preset. Extracted fields can be benchmarked across strategies and models (Compare), scored against an optional reference standard (Accuracy Evaluation, including sensitivity, specificity, PPV, and NPV), and checked case by case (Review: inline correction, evidence check, side-by-side comparison). Feedback loops send findings back to prompt engineering, and discordant cases from Accuracy Evaluation go to Review. Corrected, finalized fields can be exported as a labeled case/control cohort.*
 
-![Compare tab screenshots — accuracy heatmaps comparing four prompting strategies (A) and three LLM providers (B) across extracted fields](docs_figure2.png)
-*Compare tab: per-field accuracy heatmaps across prompting strategies (A) and across LLM providers (B).*
+![Per-field accuracy heatmaps comparing four prompting strategies on 340 PRAD prostate cancer cases (A) and three LLMs on 49 TCGA-242 liver reports (B)](docs_figure2.png)
+*Strategy and model comparison: per-field accuracy across four prompting strategies with GPT-4o-mini on 340 PRAD cases, from a single Compare-tab run (A), and across GPT-5, Claude Opus 5, and Gemini 2.5 Pro on 49 TCGA-242 liver reports, shown as mean (± SD) over three runs (B).*
 
 ![Review-assistance process diagram — an extracted field's value goes through Explain this case, which returns an explanation and a candidate quote; if that quote is found verbatim in the report a locate button highlights it, otherwise the field is flagged for closer manual reading](docs_figure3.png)
 *Review-assistance process: "Explain this case" returns an explanation and a candidate quote for each field. When that quote can be located in the report text, a locate button highlights the exact span; when it can't (typical for UNSUPPORTED fields or values reached by inference), no button is shown and the field is left for closer manual review.*
