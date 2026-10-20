@@ -60,7 +60,7 @@ For deploying it (Streamlit Community Cloud or self-hosted with Docker), see the
 
 If you use PathEx in your research, please cite:
 
-> Zhuang Y, Alami V, Feser WJ, Gao D. *PathEx: A Web-Based Multi-Strategy Platform for Large Language Model–Driven Structured Extraction from Pathology Reports.* (manuscript in preparation)
+> Zhuang Y, Alami V, Feser WJ, Gao D. *PathEx: A Web-Based Multi-Strategy Platform for Large Language Model–Driven Structured Extraction from Pathology Reports.* (manuscript under review)
 
 ## License
 
