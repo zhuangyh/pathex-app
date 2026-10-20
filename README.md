@@ -4,8 +4,8 @@
 
 🔗 **Try it live:** [pathex-app.streamlit.app](https://pathex-app.streamlit.app/)
 
-![PathEx analysis flow — pathology reports and ground truth go in, LLM structured extraction runs behind a choice of prompting strategy, extracted fields go through Review, and results feed accuracy evaluation and cohort generation](docs_figure1.png)
-*PathEx analysis flow: reports and ground truth in, LLM extraction with your choice of strategy, extracted fields go through Review for inline correction and evidence checking, then out as accuracy metrics (including sensitivity, specificity, PPV, and NPV) and a labeled cohort export.*
+![PathEx analysis flow — pathology reports and reference standard go in, LLM structured extraction runs behind a choice of prompting strategy, extracted fields go through Review, and results feed accuracy evaluation and cohort generation](docs_figure1.png)
+*PathEx analysis flow: reports and reference standard in, LLM extraction with your choice of strategy, extracted fields go through Review for inline correction and evidence checking, then out as accuracy metrics (including sensitivity, specificity, PPV, and NPV) and a labeled cohort export.*
 
 ![Compare tab screenshots — accuracy heatmaps comparing four prompting strategies (A) and three LLM providers (B) across extracted fields](docs_figure2.png)
 *Compare tab: per-field accuracy heatmaps across prompting strategies (A) and across LLM providers (B).*
@@ -18,14 +18,14 @@
 
 ## What it does
 
-Surgical pathology reports contain rich structured data (tumor size, grade, stage, margins, biomarkers) locked in free text. PathEx turns that text into structured fields using an LLM, lets you benchmark different prompting strategies and providers against ground truth, and helps you build a research-ready cohort — all through a browser, without writing code.
+Surgical pathology reports contain rich structured data (tumor size, grade, stage, margins, biomarkers) locked in free text. PathEx turns that text into structured fields using an LLM, lets you benchmark different prompting strategies and providers against a reference standard, and helps you build a research-ready cohort — all through a browser, without writing code.
 
 ## Features
 
 - **Four API providers** — OpenAI, Azure OpenAI, Google Gemini, and OpenRouter (Claude, Llama, and others)
 - **Eight prompting strategies** — zero-shot, chain-of-thought, chain-of-verification, and persona variants — so you can measure what actually improves accuracy on your data
 - **Built-in field presets** for prostate, breast, colorectal, esophagus, liver, stomach, lung, thyroid, and tongue/oral cancers, plus custom fields for any cancer type
-- **Accuracy evaluation** against your own ground-truth spreadsheet, with per-field and per-strategy accuracy heatmaps
+- **Accuracy evaluation** against your own reference-standard spreadsheet, with per-field and per-strategy accuracy heatmaps
 - **Review tab** for case-by-case manual correction, with an on-demand **"Explain this case"** feature — a single LLM call that states, for every extracted field, whether the value is a direct quote, a paraphrase/unit conversion, or an inference the report doesn't explicitly state. When a field's quote can be located in the report text, a locate button highlights that exact span so you can verify the evidence directly rather than trust the explanation alone; the report pane also has free-text search and an expandable full-window view
 - **PHI pre-pass** — a local regex scan that flags common identifier patterns (SSNs, phone numbers, emails, names, DOBs, addresses) in uploaded files before extraction runs
 - **Consistency checker** — a local, deterministic check that flags internally contradictory extracted values (e.g. more positive lymph nodes than nodes examined)
@@ -34,7 +34,7 @@ Surgical pathology reports contain rich structured data (tumor size, grade, stag
 
 ## Try it without your own data
 
-Sample de-identified datasets are bundled under `sample_data/` — four TCGA-242 cancer types (breast, colorectal, esophagus, liver), each with matched ground-truth files — so you can try the full workflow before uploading anything of your own. The PRAD benchmark used in validation is available via its original publication (Grothey et al.) rather than redistributed here.
+Sample de-identified datasets are bundled under `sample_data/` — all five TCGA-242 cancer types (breast, colorectal, esophagus, liver, stomach), each with matched reference-standard files — so you can try the full workflow before uploading anything of your own. The PRAD benchmark used in evaluation is available via its original publication (Grothey et al.) rather than redistributed here.
 
 ## Running it locally
 

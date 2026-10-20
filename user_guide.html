@@ -298,14 +298,14 @@
     <header class="doc-header">
       <span class="eyebrow">User guide</span>
       <h1>Using the Pathology Structured Extractor</h1>
-      <p class="dek">A walkthrough of the app itself — upload reports, pull structured fields out of them with an LLM, check the results against ground truth, and export what you need. Five tabs, one pipeline.</p>
+      <p class="dek">A walkthrough of the app itself — upload reports, pull structured fields out of them with an LLM, check the results against a reference standard, and export what you need. Five tabs, one pipeline.</p>
       <p class="byline">Yonghua Zhuang</p>
     </header>
 
     <section id="overview">
       <h2><span class="num">00</span>Overview</h2>
       <p>You give it an Excel file of pathology reports. It sends each report to an LLM along with a list of fields you want pulled out — stage, grade, margin status, receptor results, whatever the case calls for — and hands back a table with one row per case and one column per field.</p>
-      <p class="lede">If you also have a ground-truth spreadsheet for the same cases, the app scores every field automatically the moment extraction finishes, so you can see accuracy without a separate comparison step.</p>
+      <p class="lede">If you also have a reference-standard spreadsheet for the same cases, the app scores every field automatically the moment extraction finishes, so you can see accuracy without a separate comparison step.</p>
     </section>
 
     <section id="getting-started">
@@ -401,7 +401,7 @@
       <div class="panel-grid">
         <div class="panel">
           <span class="tab-name"><span class="dot"></span>1 · Fields &amp; Prompt</span>
-          <p>Decide what the extractor should look for. Apply a built-in <strong>preset</strong> for a supported cancer type — it fills in the field list, the allowed values for each field, and (where available) the ground-truth column mapping for you. Or skip the preset and add your own fields with the <strong>+</strong> button, each with its own name and a slash-separated list of allowed values (e.g. <code class="inline">present/absent/Not mentioned</code>).</p>
+          <p>Decide what the extractor should look for. Apply a built-in <strong>preset</strong> for a supported cancer type — it fills in the field list, the allowed values for each field, and (where available) the reference-standard column mapping for you. Or skip the preset and add your own fields with the <strong>+</strong> button, each with its own name and a slash-separated list of allowed values (e.g. <code class="inline">present/absent/Not mentioned</code>).</p>
           <p>On the right, pick a <strong>prompting strategy</strong> — see <a href="#strategies">Prompting strategies</a> below — and the exact prompt that will be sent is rendered live underneath it, so you can sanity-check it before spending any API calls.</p>
 
           <div class="mock">
@@ -474,7 +474,7 @@ The output should be structured in a JSON format.
 
         <div class="panel" id="run-results">
           <span class="tab-name"><span class="dot"></span>2 · Run &amp; Results</span>
-          <p>Press <strong>Run Extraction</strong>. Every report is sent once (twice for the verification strategies) and the results land in a table, one row per case. If a ground-truth file is attached and mapped, per-field accuracy appears automatically — no extra step.</p>
+          <p>Press <strong>Run Extraction</strong>. Every report is sent once (twice for the verification strategies) and the results land in a table, one row per case. If a reference-standard file is attached and mapped, per-field accuracy appears automatically — no extra step.</p>
           <p>Every result is cached by report text and prompt. Re-running the same case with the same prompt returns instantly at no cost — useful when you're only tweaking the prompt for one field and don't want to re-pay for the rest.</p>
 
           <div class="mock">
@@ -493,7 +493,7 @@ The output should be structured in a JSON format.
                 </table>
               </div>
             </div>
-            <div class="mock-caption">Live example — 2-case run against the demo dataset used to test this guide; every field matched the ground truth.</div>
+            <div class="mock-caption">Live example — 2-case run against the demo dataset used to test this guide; every field matched the reference standard.</div>
           </div>
         </div>
 
@@ -516,13 +516,14 @@ The output should be structured in a JSON format.
 
     <section id="datasets" class="wide">
       <h2><span class="num">04</span>Practice datasets</h2>
-      <p>Four datasets ship with the app under <strong>Sample data</strong> for trying it out before you bring your own reports — the four cancer types from the published TCGA-242 benchmark. Each comes with a matching ground-truth file, already mapped to its preset. The PRAD benchmark used in validation is available via its original publication (Grothey et al.) rather than bundled here.</p>
+      <p>Five datasets ship with the app under <strong>Sample data</strong> for trying it out before you bring your own reports — the five cancer types from the published TCGA-242 benchmark. Most stomach reports are written in a Latin/Polish-English mix rather than English. Each comes with a matching reference-standard file, already mapped to its preset. The PRAD benchmark used in evaluation is available via its original publication (Grothey et al.) rather than bundled here.</p>
 
       <div class="dataset-grid">
         <div class="dataset-card"><div class="name">Breast</div><span class="n">n = 50</span></div>
         <div class="dataset-card"><div class="name">Colorectal</div><span class="n">n = 50</span></div>
         <div class="dataset-card"><div class="name">Esophagus</div><span class="n">n = 50</span></div>
         <div class="dataset-card"><div class="name">Liver</div><span class="n">n = 49</span></div>
+        <div class="dataset-card"><div class="name">Stomach</div><span class="n">n = 42</span></div>
       </div>
       <p class="lede">Good first move: pick one, apply its matching preset in <strong>Fields &amp; Prompt</strong>, run it with the default strategy, and look at the accuracy numbers on <strong>Run &amp; Results</strong> before trying it on your own data.</p>
     </section>
@@ -647,7 +648,7 @@ The output should be structured in a JSON format.
 
       <div class="callout">
         <span class="label">No accuracy numbers showing up?</span>
-        <p>Check the <strong>GT column mapping</strong> expander in the sidebar — each extracted field needs to be matched to the right column in your ground-truth file. Built-in presets pre-fill this for you; custom field sets need it set by hand.</p>
+        <p>Check the <strong>Reference standard column mapping</strong> expander in the sidebar — each extracted field needs to be matched to the right column in your reference-standard file. Built-in presets pre-fill this for you; custom field sets need it set by hand.</p>
       </div>
 
       <div class="callout">
@@ -657,12 +658,12 @@ The output should be structured in a JSON format.
 
       <div class="callout">
         <span class="label">Uploaded the wrong preset by accident?</span>
-        <p>Switching the preset in <strong>Fields &amp; Prompt</strong> resets the field list and the GT column mapping — reapply the one you meant to use and you're back to a clean state.</p>
+        <p>Switching the preset in <strong>Fields &amp; Prompt</strong> resets the field list and the reference standard column mapping — reapply the one you meant to use and you're back to a clean state.</p>
       </div>
 
       <div class="callout">
         <span class="label">Signing in partway through setup?</span>
-        <p>If you configure fields or upload files while signed out and then sign in (which you'll need to do before running anything — see <a href="#getting-started">Getting started</a>), the app resets to your account's saved defaults. Re-apply your preset and re-attach your ground-truth file after signing in, then you're good to run.</p>
+        <p>If you configure fields or upload files while signed out and then sign in (which you'll need to do before running anything — see <a href="#getting-started">Getting started</a>), the app resets to your account's saved defaults. Re-apply your preset and re-attach your reference-standard file after signing in, then you're good to run.</p>
       </div>
 
       <p class="lede">Questions the app itself can answer: the <strong>Help</strong> tab in the top nav has a condensed reference for all of the above, plus the full prompting-strategy table, without leaving the app.</p>

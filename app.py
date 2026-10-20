@@ -292,7 +292,8 @@ PRESETS = {
 
     # ── Stomach Cancer (CAP / AJCC 8th ed.) ──────────────────────────────────
     "Stomach Cancer (CAP/AJCC)": {"fields": [
-        {"name": "Histologic Type",         "options": "tubular adenocarcinoma/mucinous adenocarcinoma/poorly cohesive carcinoma/mixed/other/Not mentioned"},
+        {"name": "Histologic Type",         "options": "tubular adenocarcinoma/mucinous adenocarcinoma/poorly cohesive carcinoma/mixed/other/Not mentioned",
+         "note": "Classify by the WHO type of the predominant component; the Lauren classification (intestinal/diffuse/mixed) is a different system. Use \"mixed\" only for a WHO mixed carcinoma: a discrete glandular (tubular or papillary) component plus a discrete poorly cohesive/signet-ring component. A Lauren \"mixed type\" or a partly mucinous component alone is not \"mixed\"; use the predominant type. Use \"mucinous adenocarcinoma\" only when the tumor is called mucinous or colloid carcinoma (predominantly extracellular mucin), not when it is only partly mucinous. Signet-ring cell carcinoma, Lauren diffuse type, and mucocellular carcinoma (\"adenocarcinoma mucocellulare\") are \"poorly cohesive carcinoma\". If only \"adenocarcinoma\" or Lauren intestinal type is stated, with no WHO subtype, use \"tubular adenocarcinoma\"."},
         {"name": "Histologic Grade",        "options": "well differentiated/moderately differentiated/poorly differentiated/Not mentioned"},
         {"name": "Primary Tumor Site",      "options": "cardia/fundus/body/antrum/pylorus/gastroesophageal junction/Not mentioned"},
         {"name": "T-Stage (TNM)",           "options": "pT1a/pT1b/pT2/pT3/pT4a/pT4b/Not mentioned"},
@@ -311,8 +312,12 @@ PRESETS = {
     # ── Stomach Cancer — TCGA-242 benchmark variant ──────────────────────────
     # All 14 fields have evaluable gold coverage in TCGA-242 (no dead fields to
     # drop); this variant only adds gt_col mappings for tcga_stomach_gt.xlsx.
+    # The Histologic Type note (WHO predominant type vs Lauren; "mixed" and
+    # "mucocellular" definitions) came from discordance review of the TCGA-242
+    # stomach reports; the manuscript's stomach results predate it.
     "Stomach Cancer — TCGA-242 (CAP/AJCC)": {"fields": [
-        {"name": "Histologic Type",         "options": "tubular adenocarcinoma/mucinous adenocarcinoma/poorly cohesive carcinoma/mixed/other/Not mentioned", "gt_col": "Histologic Type"},
+        {"name": "Histologic Type",         "options": "tubular adenocarcinoma/mucinous adenocarcinoma/poorly cohesive carcinoma/mixed/other/Not mentioned", "gt_col": "Histologic Type",
+         "note": "Classify by the WHO type of the predominant component; the Lauren classification (intestinal/diffuse/mixed) is a different system. Use \"mixed\" only for a WHO mixed carcinoma: a discrete glandular (tubular or papillary) component plus a discrete poorly cohesive/signet-ring component. A Lauren \"mixed type\" or a partly mucinous component alone is not \"mixed\"; use the predominant type. Use \"mucinous adenocarcinoma\" only when the tumor is called mucinous or colloid carcinoma (predominantly extracellular mucin), not when it is only partly mucinous. Signet-ring cell carcinoma, Lauren diffuse type, and mucocellular carcinoma (\"adenocarcinoma mucocellulare\") are \"poorly cohesive carcinoma\". If only \"adenocarcinoma\" or Lauren intestinal type is stated, with no WHO subtype, use \"tubular adenocarcinoma\"."},
         {"name": "Histologic Grade",        "options": "well differentiated/moderately differentiated/poorly differentiated/Not mentioned", "gt_col": "Histologic Grade"},
         {"name": "Primary Tumor Site",      "options": "cardia/fundus/body/antrum/pylorus/gastroesophageal junction/Not mentioned", "gt_col": "Primary Tumor Site"},
         {"name": "T-Stage (TNM)",           "options": "pT1a/pT1b/pT2/pT3/pT4a/pT4b/Not mentioned",                    "gt_col": "T-Stage (TNM)"},
@@ -812,7 +817,7 @@ def collapse_subreports(rows, field_names):
 def compute_accuracy(results_df, gt_df, fields, gt_id_col, gt_col_map):
     gt = gt_df.rename(columns={gt_id_col: "Case_ID"})
 
-    # Rename GT columns to avoid suffix collision when field names == GT column names
+    # Rename reference standard columns to avoid suffix collision when field names == reference standard column names
     gt_rename = {c: c + "__gt" for c in gt.columns if c != "Case_ID"}
     gt = gt.rename(columns=gt_rename)
 
@@ -839,7 +844,7 @@ def compute_accuracy(results_df, gt_df, fields, gt_id_col, gt_col_map):
 
 def compute_classification_metrics(results_df, gt_df, fields, gt_id_col, gt_col_map, positive_class):
     """For fields with a user-configured positive class, compute sensitivity,
-    specificity, PPV, and NPV against ground truth.
+    specificity, PPV, and NPV against the reference standard.
 
     `positive_class` maps field name -> either a list/set of option strings
     (categorical positive class, e.g. {"HER2 Status": ["Positive"]}) or the
@@ -1559,7 +1564,7 @@ def main():
 
         st.divider()
 
-        # ── Reports file / Ground truth ─────────────────────────────────────
+        # ── Reports file / Reference standard ────────────────────────────────
         # Uploading used to be allowed while signed out ("browsing is free"),
         # but that let anonymous visitors load and inspect real report data
         # with no account attached. Gate both uploaders behind a single
@@ -1652,8 +1657,8 @@ def main():
 
             st.divider()
 
-            st.markdown("**📊 Ground truth** *(optional)*")
-            gt_file = st.file_uploader("GT Excel file", type=["xlsx", "xls"],
+            st.markdown("**📊 Reference standard** *(optional)*")
+            gt_file = st.file_uploader("Reference standard Excel file", type=["xlsx", "xls"],
                                         label_visibility="collapsed",
                                         key=f"gt_uploader_{ss.uploader_epoch}")
             if gt_file:
@@ -1676,7 +1681,7 @@ def main():
             if ss.gt_df is not None:
                 gt_cols    = ss.gt_df.columns.tolist()
                 id_guess   = next((c for c in gt_cols if c.lower() in ("id","case_id","caseid")), gt_cols[0])
-                ss.gt_id_col = st.selectbox("GT case ID column", gt_cols,
+                ss.gt_id_col = st.selectbox("Reference standard case ID column", gt_cols,
                                              index=gt_cols.index(ss.gt_id_col or id_guess))
                 st.caption(f"{len(ss.gt_df)} rows · {len(gt_cols)} columns")
 
@@ -1689,7 +1694,7 @@ def main():
                     if not ss._gt_mapping_seen:
                         expander_kwargs["expanded"] = not ss.gt_col_map
                         ss._gt_mapping_seen = True
-                    with st.expander("🗂 GT column mapping", **expander_kwargs):
+                    with st.expander("🗂 Reference standard column mapping", **expander_kwargs):
                         choices = ["(none)"] + gt_cols
                         for i, f in enumerate(ss.fields):
                             default = ss.gt_col_map.get(f["name"]) or f.get("gt_col", "")
@@ -2114,9 +2119,9 @@ def main():
                             st.dataframe(acc_df.sort_values("Accuracy (%)", ascending=False),
                                          use_container_width=True, hide_index=True)
                         else:
-                            st.info("No GT columns matched. Check the **GT column mapping** in the sidebar.")
+                            st.info("No reference standard columns matched. Check the **Reference standard column mapping** in the sidebar.")
                     else:
-                        st.info("Upload a **ground truth file** in the sidebar and set the column mapping to see accuracy.")
+                        st.info("Upload a **reference standard file** in the sidebar and set the column mapping to see accuracy.")
 
                 with sub_table:
                     _corrected_df = apply_corrections(ss.results_df, ss.corrections)
@@ -2290,7 +2295,7 @@ def main():
                             st.dataframe(pd.DataFrame(summary).sort_values("Mean accuracy (%)", ascending=False),
                                          use_container_width=True, hide_index=True)
                     else:
-                        st.info("Upload a ground truth file to see accuracy. Raw extractions below.")
+                        st.info("Upload a reference standard file to see accuracy. Raw extractions below.")
                         st.dataframe(ss.compare_df, use_container_width=True, hide_index=True)
 
                     st.download_button(
@@ -2465,7 +2470,7 @@ def main():
                                     "Mean accuracy (%)", ascending=False),
                                     use_container_width=True, hide_index=True)
                         else:
-                            st.info("Upload a ground truth file to see accuracy. Raw table below.")
+                            st.info("Upload a reference standard file to see accuracy. Raw table below.")
 
                         st.dataframe(ss.model_compare_df, use_container_width=True, hide_index=True)
                         st.download_button(
@@ -2989,13 +2994,13 @@ def main():
 ### Quick start
 1. **Upload** your Excel file in the sidebar (needs a Case ID column and a Report text column).
 2. **Fields & Prompt** — apply the PRAD or Tongue Cancer preset, or define custom fields.
-3. **Run & Results** — hit ▶ Run Extraction. Accuracy appears automatically if GT is loaded.
+3. **Run & Results** — hit ▶ Run Extraction. Accuracy appears automatically if the reference standard is loaded.
 4. **Compare Strategies** — select ≥ 2 strategies to see a side-by-side heatmap.
 5. **Review** — navigate case-by-case, edit the *Corrected* column, and download.
 6. **Cohort** — build Inclusion/Exclusion rules and export the matching subset.
 
-### Ground truth evaluation
-Upload a GT Excel file (sidebar). Set the **GT column mapping** expander to map each extracted field to the corresponding GT column. For PRAD this is pre-filled from the preset.
+### Reference standard evaluation
+Upload a reference standard Excel file (sidebar). Set the **Reference standard column mapping** expander to map each extracted field to the corresponding reference standard column. For PRAD this is pre-filled from the preset.
 
 ### Caching
 Results are cached per account (each signed-in user has their own private cache — never shared with other users). Re-running the same report text and prompt returns your own cached result instantly at no cost. Signed-out browsing has no cache, since there's no account to keep it private to.
