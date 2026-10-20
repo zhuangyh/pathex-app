@@ -3048,7 +3048,7 @@ Works with any OpenAI-format endpoint:
         st.code(
             "Zhuang Y, Alami V, Feser WJ, Gao D. PathEx: A Web-Based Multi-Strategy Platform for\n"
             "Large Language Model–Driven Structured Extraction from Pathology Reports.\n"
-            "Manuscript in preparation.",
+            "Manuscript under review.",
             language=None,
         )
 
