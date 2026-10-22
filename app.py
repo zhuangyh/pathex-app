@@ -5,7 +5,7 @@ Authors: Yonghua Zhuang, Vida Alami, William J. Feser, Dexiang Gao
 License: MIT (see LICENSE)
 Citation: Zhuang Y, Alami V, Feser WJ, Gao D. PathEx: A Web-Based Multi-Strategy Platform for
           Large Language Model-Driven Structured Extraction from Pathology Reports.
-          (manuscript under review)
+          (Manuscript submitted)
 """
 
 from __future__ import annotations
@@ -3048,7 +3048,7 @@ Works with any OpenAI-format endpoint:
         st.code(
             "Zhuang Y, Alami V, Feser WJ, Gao D. PathEx: A Web-Based Multi-Strategy Platform for\n"
             "Large Language Model–Driven Structured Extraction from Pathology Reports.\n"
-            "Manuscript under review.",
+            "Manuscript submitted.",
             language=None,
         )
 
